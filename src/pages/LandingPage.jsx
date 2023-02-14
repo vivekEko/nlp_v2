@@ -1,5 +1,6 @@
 import React from "react";
 import Typewriter from "typewriter-effect";
+import Header from "../components/globals/user/Header";
 
 const LandingPage = () => {
   const pageData = [
@@ -54,6 +55,7 @@ const LandingPage = () => {
   ];
   return (
     <div className="font-nunito ">
+      <Header />
       <div className="w-[80%] mx-auto">
         {pageData?.map((data, index) => {
           return (

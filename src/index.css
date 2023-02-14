@@ -164,3 +164,21 @@
     border-radius: 50%;
   }
 }
+
+.slideDownAnimation {
+  /* animation: slideDown 500ms ease-in linear; */
+
+  animation: slideDown 5s linear 2s infinite alternate;
+}
+
+@keyframes slideDown {
+  0% {
+    /* transform: translateY(10%); */
+    background-color: red;
+  }
+
+  100% {
+    /* transform: translateY(0); */
+    background-color: green;
+  }
+}

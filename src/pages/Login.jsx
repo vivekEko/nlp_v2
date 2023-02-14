@@ -28,7 +28,7 @@ const Login = () => {
     try {
       await signInWithPopup(auth, provider)?.then((res) => {
         if (res) {
-          navigate("/admin/dashboard");
+          navigate("/admin/surveys");
           console.log(res);
           setLoaderStatus(false);
         }
@@ -81,7 +81,7 @@ const Login = () => {
                   )?.then((res) => {
                     if (res) {
                       console.log(res);
-                      navigate("/admin/dashboard");
+                      navigate("/admin/surveys");
                       setLoaderStatus(false);
                     }
                   });
