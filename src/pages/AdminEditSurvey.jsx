@@ -1,11 +1,10 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 
 const AdminEditSurvey = () => {
-  const location = useLocation();
   const header_data = {
     survey_name: "Survey Name",
     links_list: [
@@ -30,7 +29,9 @@ const AdminEditSurvey = () => {
       {/* edit header */}
       <header className="flex justify-between items-center px-10 border-b">
         <div className="w-full">
-          <ArrowBackIosNewRoundedIcon className="text-gray-600" />
+          <Link to="/admin/surveys">
+            <ArrowBackIosNewRoundedIcon className="text-gray-600" />
+          </Link>
           <input
             type="text"
             defaultValue="Survey Name"
