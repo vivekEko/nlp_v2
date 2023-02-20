@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 
+
 const AdminEditSurvey = () => {
   const header_data = {
     survey_name: "Survey Name",
@@ -54,11 +55,18 @@ const AdminEditSurvey = () => {
           })}
         </div>
 
-        <div className="w-full flex justify-end ">
-          <div className="bg-gray-100 flex items-center gap-2 text-gray-800 px-5 py-2 rounded-lg">
-            <LockRoundedIcon className="text-gray-600" />
-            <span>Results end-to-end encryption</span>
-          </div>
+        <div className="w-full flex justify-end gap-5 py-1">
+        
+{/* publish btn */}
+          <Link to="/public/survey/123"
+          // onClick={() => {
+          //   setCreateSurveyOverlay(!createSurveyOverlay);
+          // }}
+          className=" px-5 py-2 bg-[#1e1e1e] rounded-lg text-white flex items-center gap-2 active:scale-95 transition-all hover:bg-white hover:text-[#1e1e1e] duration-300 border-2 border-[#1e1e1e] group"
+        >
+      
+          <span className="block font-semibold">Publish</span>
+        </Link>
         </div>
       </header>
     </div>

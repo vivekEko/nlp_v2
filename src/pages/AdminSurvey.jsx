@@ -141,7 +141,7 @@ const AdminSurvey = () => {
                           className="w-full col-span-2 group overflow-hidden cursor-pointer pl-3 py-3"
                         >
                           <div>
-                            <div className="  -translate-x-9 transition-all duration-500 group-hover:translate-x-0">
+                            <div className="-translate-x-9 transition-all duration-500 group-hover:translate-x-0">
                               <span>
                                 <ModeEditOutlineOutlinedIcon className="mr-3 text-gray-500 " />
                               </span>

@@ -8,6 +8,7 @@ import AdminSurvey from "./pages/AdminSurvey";
 import AdminEditSurvey from "./pages/AdminEditSurvey";
 import AdminResponsePage from "./pages/AdminResponsePage";
 import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
+import PublicSurveys from "./pages/PublicSurveys";
 
 function App() {
   return (
@@ -25,6 +26,11 @@ function App() {
         <Route
           element={<AdminAnalyticsPage />}
           path={"/admin/analytic/:survey_id"}
+        />
+
+<Route
+          element={<PublicSurveys />}
+          path={"/public/survey/:survey_id"}
         />
       </Routes>
     </div>
