@@ -9,6 +9,7 @@ import AdminEditSurvey from "./pages/AdminEditSurvey";
 import AdminResponsePage from "./pages/AdminResponsePage";
 import AdminAnalyticsPage from "./pages/AdminAnalyticsPage";
 import PublicSurveys from "./pages/PublicSurveys";
+import AdminSharePage from "./pages/AdminSharePage";
 
 function App() {
   return (
@@ -27,11 +28,9 @@ function App() {
           element={<AdminAnalyticsPage />}
           path={"/admin/analytic/:survey_id"}
         />
+        <Route element={<AdminSharePage />} path={"/admin/share/:survey_id"} />
 
-<Route
-          element={<PublicSurveys />}
-          path={"/public/survey/:survey_id"}
-        />
+        <Route element={<PublicSurveys />} path={"/public/survey/:survey_id"} />
       </Routes>
     </div>
   );

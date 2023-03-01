@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 
@@ -15,6 +14,11 @@ const AdminResponsePage = () => {
       },
 
       {
+        link_name: "Share",
+        link_path: "/admin/share/123",
+      },
+
+      {
         link_name: "Responses",
         link_path: "/admin/response/123",
       },
@@ -25,11 +29,7 @@ const AdminResponsePage = () => {
       },
     ],
 
-    response_data: [
-      {
-        
-      }
-    ]
+    response_data: [{}],
   };
   return (
     <div>
@@ -39,13 +39,16 @@ const AdminResponsePage = () => {
           <Link to="/admin/surveys">
             <ArrowBackIosNewRoundedIcon className="text-gray-600" />
           </Link>
-          <h1  className="inline px-3 py-2   outline-none   rounded-xl text-lg ml-5">Survey Name</h1>
+          <h1 className="inline px-3 py-2   outline-none   rounded-xl text-lg ml-5">
+            NPS Survey
+          </h1>
         </div>
 
         <div className="flex items-center gap-10 w-full justify-center     ">
           {header_data?.links_list?.map((data, index) => {
             return (
               <Link
+                key={index}
                 to={data?.link_path}
                 className={` ${
                   data?.link_name === "Responses" ? "border-b-[#1e1e1e]" : ""
@@ -62,7 +65,6 @@ const AdminResponsePage = () => {
             <LockRoundedIcon className="text-gray-600" />
             <span>Results end-to-end encryption</span>
           </div>
-
         </div>
       </header>
     </div>

@@ -1,17 +1,23 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
+// icons
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
-import LockRoundedIcon from "@mui/icons-material/LockRounded";
-
+// images
+import under_construction from "../assets/misc/under_construction.svg";
+import PublicSurveys from "./PublicSurveys";
 
 const AdminEditSurvey = () => {
   const header_data = {
-    survey_name: "Survey Name",
+    survey_name: "NPS Survey",
     links_list: [
       {
         link_name: "Edit",
         link_path: "/admin/edit/123",
+      },
+
+      {
+        link_name: "Share",
+        link_path: "/admin/share/123",
       },
 
       {
@@ -25,8 +31,88 @@ const AdminEditSurvey = () => {
       },
     ],
   };
+
+  const surveyTemplateData = {
+    config: {
+      bg_image: "",
+      primary_color: "#17286d",
+      secondary_color: "",
+      total_time: 5000,
+    },
+
+    welcome_screen: {
+      logo: "",
+      heading: "Net Promoter Score Survey",
+      sub_text: "",
+      start_button_text: "Start Survey",
+    },
+
+    contents: [
+      {
+        question: "Name",
+        type: "small_text",
+        answer: "",
+        important: true,
+      },
+      {
+        question: "Gender",
+        type: "list",
+        options: ["Male", "Female", "Other", "Prefer not to say"],
+        answer: "",
+        important: true,
+      },
+      {
+        question: "Email",
+        type: "email",
+        answer: "",
+        important: true,
+      },
+      {
+        question: "Age",
+        type: "number",
+        answer: "",
+        important: true,
+      },
+      {
+        question: "Phone Number",
+        type: "number",
+        answer: "",
+        important: true,
+      },
+      {
+        question:
+          "On a scale of 0 to 10, how likely are you to recommend our company/product/service to a friend or colleague?",
+        type: "range",
+        start_and_end_word: ["Not likely at all", "Extremely likely"],
+        answer: "",
+      },
+      {
+        question:
+          " In your opinion, what improvements could the company make that would warrant a higher rating from you? ",
+        type: "textarea",
+        answer: "",
+      },
+      {
+        question: "How well our service meets your needs?",
+        type: "list",
+        options: [
+          "Extremely well",
+          "Very well",
+          "Somewhat well",
+          "Not so well",
+          "Not at all well",
+        ],
+        answer: "",
+      },
+      {
+        question: "How would you rate our quality of service?",
+        type: "star",
+        answer: "",
+      },
+    ],
+  };
   return (
-    <div>
+    <div className="h-[94vh]">
       {/* edit header */}
       <header className="flex justify-between items-center px-10 border-b">
         <div className="w-full">
@@ -35,13 +121,13 @@ const AdminEditSurvey = () => {
           </Link>
           <input
             type="text"
-            defaultValue="Survey Name"
+            defaultValue="NPS Survey"
             className="px-3 py-2 border hover:border-gray-500 outline-none border-[#1e1e1e00]  rounded-xl text-lg ml-5"
           />
         </div>
 
         <div className="flex items-center gap-10 w-full justify-center     ">
-          {header_data?.links_list?.map((data, index) => {
+          {header_data?.links_list?.map((data) => {
             return (
               <Link
                 to={data?.link_path}
@@ -56,19 +142,47 @@ const AdminEditSurvey = () => {
         </div>
 
         <div className="w-full flex justify-end gap-5 py-1">
-        
-{/* publish btn */}
-          <Link to="/public/survey/123"
-          // onClick={() => {
-          //   setCreateSurveyOverlay(!createSurveyOverlay);
-          // }}
-          className=" px-5 py-2 bg-[#1e1e1e] rounded-lg text-white flex items-center gap-2 active:scale-95 transition-all hover:bg-white hover:text-[#1e1e1e] duration-300 border-2 border-[#1e1e1e] group"
-        >
-      
-          <span className="block font-semibold">Publish</span>
-        </Link>
+          {/* publish btn */}
+          <Link
+            to="/public/survey/123"
+            // onClick={() => {
+            //   setCreateSurveyOverlay(!createSurveyOverlay);
+            // }}
+            className=" px-5 py-2 bg-[#1e1e1e] rounded-lg text-white flex items-center gap-2 active:scale-95 transition-all hover:bg-white hover:text-[#1e1e1e] duration-300 border-2 border-[#1e1e1e] group"
+          >
+            <span className="block font-semibold">Publish</span>
+          </Link>
         </div>
       </header>
+
+      {/* main body */}
+
+      <div className="flex w-full">
+        {/* question list */}
+        <section className="w-full border">
+          {surveyTemplateData?.contents?.map((data, index) => {
+            return (
+              <div>
+                <h1 className="border-b text-=gray-500 cursor-pointer p-3  hover:bg-gray-100 rounded-lg">
+                  <span className="mr-2">{index + 1}.</span> {data?.question}
+                </h1>
+              </div>
+            );
+          })}
+        </section>
+        <section className="w-full border">
+          <div className=" h-full flex justify-center items-center">
+            <img
+              src={under_construction}
+              alt="under construction"
+              className="w-[50%]"
+            />
+          </div>
+        </section>
+        <section className="w-full  border bg-[url(/template_1_bg.svg)]">
+          <PublicSurveys />
+        </section>
+      </div>
     </div>
   );
 };

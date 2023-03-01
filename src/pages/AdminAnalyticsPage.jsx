@@ -1,17 +1,21 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
 
 const AdminAnalyticsPage = () => {
-    const header_data = {
+  const header_data = {
     survey_name: "Survey Name",
     links_list: [
       {
         link_name: "Edit",
         link_path: "/admin/edit/123",
+      },
+
+      {
+        link_name: "Share",
+        link_path: "/admin/share/123",
       },
 
       {
@@ -27,19 +31,22 @@ const AdminAnalyticsPage = () => {
   };
   return (
     <div>
-   {/* response header */}
+      {/* response header */}
       <header className="flex justify-between items-center px-10 border-b">
         <div className="w-full">
           <Link to="/admin/surveys">
             <ArrowBackIosNewRoundedIcon className="text-gray-600" />
           </Link>
-          <h1  className="inline px-3 py-2   outline-none   rounded-xl text-lg ml-5">Survey Name</h1>
+          <h1 className="inline px-3 py-2   outline-none   rounded-xl text-lg ml-5">
+            NPS Survey
+          </h1>
         </div>
 
         <div className="flex items-center gap-10 w-full justify-center     ">
           {header_data?.links_list?.map((data, index) => {
             return (
               <Link
+                key={index}
                 to={data?.link_path}
                 className={` ${
                   data?.link_name === "Analytics" ? "border-b-[#1e1e1e]" : ""
@@ -56,7 +63,6 @@ const AdminAnalyticsPage = () => {
             <LockRoundedIcon className="text-gray-600" />
             <span>Results end-to-end encryption</span>
           </div>
-
         </div>
       </header>
     </div>
