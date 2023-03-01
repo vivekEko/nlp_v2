@@ -116,8 +116,31 @@ const PublicSurveys = () => {
   }, []);
 
   useEffect(() => {
-    console.log("pageData:", pageData);
-  }, [pageData]);
+    console.log("activeQuestionIndex:", activeQuestionIndex);
+  }, [activeQuestionIndex]);
+
+  const handleUserKeyPress = (e) => {
+    console.log(e?.code);
+    if (e.code == "ArrowUp" || e.code == "Escape") {
+      // jump to previous question
+      if (activeQuestionIndex > 0) {
+        setActiveQuestionIndex(activeQuestionIndex - 1);
+      }
+    } else if (e.code == "ArrowDown" || e.code == "Enter") {
+      // jump to next question
+      if (activeQuestionIndex < pageData?.contents?.length - 1) {
+        setActiveQuestionIndex(activeQuestionIndex + 1);
+      }
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleUserKeyPress);
+
+    return () => {
+      window.removeEventListener("keydown", handleUserKeyPress);
+    };
+  });
 
   const rangeData = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -174,6 +197,7 @@ const PublicSurveys = () => {
                 if (activeQuestionIndex === index) {
                   return (
                     <motion.div
+                      key={index}
                       initial={{ opacity: 0, y: 50 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 50 }}
@@ -198,6 +222,7 @@ const PublicSurveys = () => {
                         {data?.type === "small_text" && (
                           <input
                             type="text"
+                            autoFocus
                             placeholder="Please enter your response"
                             style={{
                               border:
@@ -226,7 +251,7 @@ const PublicSurveys = () => {
                         )}
 
                         {data?.type === "mcq" && (
-                          <div className="grid grid-cols-2 gap-x-3">
+                          <div autoFocus className="grid grid-cols-2 gap-x-3">
                             {data?.options?.map((o_data, o_index) => {
                               return (
                                 <button
@@ -282,6 +307,7 @@ const PublicSurveys = () => {
                           <input
                             type="email"
                             placeholder="Please enter an email address"
+                            autoFocus
                             style={{
                               border:
                                 `1px solid ` + pageData?.config?.primary_color,
@@ -312,6 +338,7 @@ const PublicSurveys = () => {
                           <input
                             type="number"
                             placeholder="Please enter a number"
+                            autoFocus
                             style={{
                               border:
                                 `1px solid ` + pageData?.config?.primary_color,
@@ -340,7 +367,7 @@ const PublicSurveys = () => {
 
                         {data?.type === "range" && (
                           <div>
-                            <div className="flex gap-5  items-center">
+                            <div className="flex gap-5  items-center" autoFocus>
                               {rangeData?.map((o_data, o_index) => {
                                 return (
                                   <button
@@ -397,6 +424,7 @@ const PublicSurveys = () => {
                           <textarea
                             rows={10}
                             placeholder="Please enter your response"
+                            autoFocus
                             style={{
                               border:
                                 `1px solid ` + pageData?.config?.primary_color,
@@ -424,10 +452,10 @@ const PublicSurveys = () => {
                         )}
 
                         {data?.type === "list" && (
-                          <div className="">
+                          <div className="" tabIndex={0} autoFocus>
                             {data?.options?.map((o_data, o_index) => {
                               return (
-                                <button
+                                <div
                                   key={o_index}
                                   style={{
                                     outlineColor: `  ${pageData?.config?.primary_color}`,
@@ -470,59 +498,26 @@ const PublicSurveys = () => {
                                     } w-4 rounded-full aspect-square transition-all `}
                                   ></div>
                                   <h1 className="text-lg">{o_data}</h1>
-                                </button>
+                                </div>
                               );
                             })}
                           </div>
                         )}
 
                         {data?.type === "star" && (
-                          <div className="flex justify-start items-center gap-10">
+                          <div
+                            className="flex justify-start items-center gap-10"
+                            autoFocus
+                          >
                             <button
-                              className={`mb-3 rounded-lg  items-center cursor-pointer transition-all scale-150 `}
-                              //   onClick={() => {
-                              //     setPageData({
-                              //       ...pageData,
-                              //       contents: pageData?.contents?.map(
-                              //         (c_data, c_index) => {
-                              //           if (c_index === activeQuestionIndex) {
-                              //             return {
-                              //               ...c_data,
-                              //               answer: o_data,
-                              //             };
-                              //           } else {
-                              //             return c_data;
-                              //           }
-                              //         }
-                              //       ),
-                              //     });
-                              //   }}
-                              //   onMouseEnter={() => {
-                              //     setPageData({
-                              //       ...pageData,
-                              //       contents: pageData?.contents?.map(
-                              //         (c_data, c_index) => {
-                              //           if (c_index === activeQuestionIndex) {
-                              //             return {
-                              //               ...c_data,
-                              //               answer: o_data,
-                              //             };
-                              //           } else {
-                              //             return c_data;
-                              //           }
-                              //         }
-                              //       ),
-                              //     });
-                              //   }}
+                              className={`mb-3 rounded-lg ml-8 outline-none items-center cursor-pointer transition-all scale-150 `}
                             >
                               <StyledRating
                                 name="customized-color"
                                 defaultValue={0}
                                 precision={0.5}
-                                icon={<StarIcon fontSize="inherit" />}
-                                emptyIcon={
-                                  <StarBorderIcon fontSize="inherit" />
-                                }
+                                icon={<StarIcon fontSize="large" />}
+                                emptyIcon={<StarBorderIcon fontSize="large" />}
                                 onChange={(event, newValue) => {
                                   setPageData({
                                     ...pageData,
@@ -541,23 +536,6 @@ const PublicSurveys = () => {
                                   });
                                 }}
                               />
-                              {/* {data?.answer ? (
-                                    <h1
-                                      className={` text-[${pageData?.config?.primary_color}] `}
-                                    >
-                                      {data?.answer < o_data ? (
-                                        <StarBorderIcon fontSize="large" />
-                                      ) : (
-                                        <StarIcon fontSize="large" />
-                                      )}
-                                    </h1>
-                                  ) : (
-                                    <h1
-                                      className={` text-[${pageData?.config?.primary_color}] `}
-                                    >
-                                      <StarBorderIcon fontSize="large" />
-                                    </h1>
-                                  )} */}
                             </button>
                           </div>
                         )}

@@ -29,7 +29,6 @@ function App() {
           path={"/admin/analytic/:survey_id"}
         />
         <Route element={<AdminSharePage />} path={"/admin/share/:survey_id"} />
-
         <Route element={<PublicSurveys />} path={"/public/survey/:survey_id"} />
       </Routes>
     </div>
