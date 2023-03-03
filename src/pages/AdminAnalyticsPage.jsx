@@ -6,6 +6,8 @@ import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import { DateRangePicker } from "react-date-range";
 import { addDays } from "date-fns";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 const AdminAnalyticsPage = () => {
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
@@ -80,6 +82,34 @@ const AdminAnalyticsPage = () => {
         unit: null,
       },
     ],
+    graphs: {
+      nps_pie_bar: {
+        nps_score: 49,
+        promoters: 63,
+        total_promoters: 1112,
+        passive: 23,
+        total_passive: 412,
+        detractors: 14,
+        total_detractors: 244,
+      },
+      nps_pie: [
+        {
+          label: "Promoters",
+          percentage: 72,
+          color: "#00AC69",
+        },
+        {
+          label: "Passives",
+          percentage: 19,
+          color: "#4D5552",
+        },
+        {
+          label: "Detractors",
+          percentage: 8,
+          color: "#DB2B39",
+        },
+      ],
+    },
   };
   return (
     <div>
@@ -134,7 +164,7 @@ const AdminAnalyticsPage = () => {
                 </div>
               </button>
               {calendarStatus && (
-                <div className="w-fit absolute top-[110%] left-0 border rounded-lg overflow-hidden shadow-2xl">
+                <div className="w-fit absolute top-[110%] left-0 border rounded-lg overflow-hidden drop-shadow-[0px_100px_100px_rgba(0,0,0,0.50)]  z-50">
                   <DateRangePicker
                     onChange={handleSelect}
                     showSelectionPreview={true}
@@ -164,9 +194,163 @@ const AdminAnalyticsPage = () => {
           {/* graphs */}
           <div className=" mt-5 text-gray-900">
             <div className="flex items-center gap-5">
-              {/* nps overall */}
-              <div className="border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+              {/* nps summary */}
+              <div className="border bg-white rounded-lg p-5 flex-1">
                 <h1 className="text-xl font-semibold ">NPS Summary</h1>
+
+                <div className="mt-5">
+                  <div className="flex gap-5 items-center">
+                    {/* pie */}
+                    <div className="flex-[0.3] relative">
+                      {/* Pie graph */}
+                      <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                        <div className="flex flex-col justify-center items-center">
+                          <h1 className="text-[18px] opacity-80">NPS</h1>
+                          <p className="opacity-80 text-[24px] font-semibold  ">
+                            {pageData?.graphs?.nps_pie_bar?.nps_score}
+                          </p>
+                        </div>
+                      </div>
+                      <ResponsiveContainer
+                        height={250}
+                        width="100%"
+                        className=""
+                      >
+                        <PieChart key={pageData?.graphs?.nps_pie_bar}>
+                          {/* <Tooltip cursor={false} content={<CustomTooltip />} /> */}
+                          <Tooltip cursor={false} />
+                          <Pie
+                            data={pageData?.graphs?.nps_pie}
+                            dataKey="percentage"
+                            nameKey="label"
+                            cx="50%"
+                            cy="50%"
+                            strokeWidth={5}
+                            innerRadius="60%"
+                            outerRadius="100%"
+                            cornerRadius={6}
+                            paddingAngle={-1}
+                            startAngle={-270}
+                            endAngle={-630}
+                            minAngle={15}
+                          >
+                            {pageData?.graphs?.nps_pie?.map((entry, index) => (
+                              <Cell key={index} fill={entry?.color} />
+                            ))}
+                          </Pie>
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* pie bar */}
+                    <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                      {/* promoter */}
+                      <div>
+                        {/* head  */}
+                        <div className="flex justify-between items-center">
+                          <div className="text-gray-400 flex gap-2 ">
+                            <h3>Promoters</h3>
+                            <h4>
+                              {"(" +
+                                pageData?.graphs?.nps_pie_bar?.promoters +
+                                "%)"}
+                            </h4>
+                          </div>
+
+                          <div className="text-gray-400 flex gap-2 ">
+                            <h3>
+                              {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                            </h3>
+
+                            <h4>
+                              <GroupsRoundedIcon />
+                            </h4>
+                          </div>
+                        </div>
+                        {/* bar */}
+                        <div className="bg-white rounded-xl border">
+                          <div
+                            className="bg-[#00AC69] h-[25px] rounded-xl"
+                            style={{
+                              width:
+                                pageData?.graphs?.nps_pie_bar?.promoters + "%",
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      {/* passive */}
+                      <div>
+                        {/* head  */}
+                        <div className="flex justify-between items-center">
+                          <div className="text-gray-400 flex gap-2 ">
+                            <h3>Passives</h3>
+                            <h4>
+                              {"(" +
+                                pageData?.graphs?.nps_pie_bar?.passive +
+                                "%)"}
+                            </h4>
+                          </div>
+
+                          <div className="text-gray-400 flex gap-2 ">
+                            <h3>
+                              {pageData?.graphs?.nps_pie_bar?.total_passive}
+                            </h3>
+
+                            <h4>
+                              <GroupsRoundedIcon />
+                            </h4>
+                          </div>
+                        </div>
+                        {/* bar */}
+                        <div className="bg-white rounded-xl border">
+                          <div
+                            className="bg-[#4D5552] h-[25px] rounded-xl"
+                            style={{
+                              width:
+                                pageData?.graphs?.nps_pie_bar?.passive + "%",
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      {/* detractors */}
+                      <div>
+                        {/* head  */}
+                        <div className="flex justify-between items-center">
+                          <div className="text-gray-400 flex gap-2 ">
+                            <h3>Detractors</h3>
+                            <h4>
+                              {"(" +
+                                pageData?.graphs?.nps_pie_bar?.detractors +
+                                "%)"}
+                            </h4>
+                          </div>
+
+                          <div className="text-gray-400 flex gap-2 ">
+                            <h3>
+                              {pageData?.graphs?.nps_pie_bar?.total_detractors}
+                            </h3>
+
+                            <h4>
+                              <GroupsRoundedIcon />
+                            </h4>
+                          </div>
+                        </div>
+                        {/* bar */}
+                        <div className="bg-white rounded-xl border">
+                          <div
+                            className="bg-[#DB2B39] h-[25px] rounded-xl"
+                            style={{
+                              width:
+                                pageData?.graphs?.nps_pie_bar?.detractors + "%",
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* average nps */}
