@@ -1,10 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
-
+import { DateRangePicker } from "react-date-range";
+import { addDays } from "date-fns";
+import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
 const AdminAnalyticsPage = () => {
+  const [startDate, setStartDate] = useState();
+  const [endDate, setEndDate] = useState();
+  const [calendarStatus, setCalendarStatus] = useState(false);
+
+  function handleSelect(ranges) {
+    setStartDate(ranges?.selection?.startDate);
+    setEndDate(ranges?.selection?.endDate);
+  }
+
+  const selectionRange = {
+    startDate: startDate,
+    endDate: endDate,
+    key: "selection",
+  };
+
   const header_data = {
     survey_name: "Survey Name",
     links_list: [
@@ -26,6 +43,41 @@ const AdminAnalyticsPage = () => {
       {
         link_name: "Analytics",
         link_path: "/admin/analytic/123",
+      },
+    ],
+  };
+
+  const pageData = {
+    cards: [
+      {
+        title: "Responses",
+        value: 17200,
+        unit: null,
+      },
+      {
+        title: "NPS Score",
+        value: 40,
+        unit: null,
+      },
+      {
+        title: "Avg NPS",
+        value: 7.2,
+        unit: null,
+      },
+      {
+        title: "Promoters",
+        value: 14100,
+        unit: null,
+      },
+      {
+        title: "Passives",
+        value: 2100,
+        unit: null,
+      },
+      {
+        title: "Detractors",
+        value: 1000,
+        unit: null,
       },
     ],
   };
@@ -65,6 +117,71 @@ const AdminAnalyticsPage = () => {
           </div>
         </div>
       </header>
+
+      <div className="bg-gray-50 ">
+        <div className="w-[80%] h-full mx-auto py-5">
+          {/* filter */}
+          <div>
+            {/* date range */}
+            <div className="relative">
+              <button
+                className="text-sm text-gray-500 flex gap-2 items-center bg-white p-2 px-3 rounded-lg w-fit border"
+                onClick={() => setCalendarStatus(!calendarStatus)}
+              >
+                <h1>21 Feb 22 - 30 Mar 23</h1>
+                <div>
+                  <CalendarMonthRoundedIcon />
+                </div>
+              </button>
+              {calendarStatus && (
+                <div className="w-fit absolute top-[110%] left-0 border rounded-lg overflow-hidden shadow-2xl">
+                  <DateRangePicker
+                    onChange={handleSelect}
+                    showSelectionPreview={true}
+                    moveRangeOnFirstSelection={false}
+                    months={1}
+                    // rangeColors={["#227638", "#e93008"]}
+                    direction="vertical"
+                    ranges={[selectionRange]}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* cards */}
+          <div className="bg-white rounded-lg border mt-5 flex justify-between items-center divide-x text-gray-900">
+            {pageData?.cards?.map((data, index) => {
+              return (
+                <div className="w-full flex flex-col justify-center items-center p-5 gap-2">
+                  <h2 className=" text-gray-500 ">{data?.title}</h2>
+                  <h1 className="text-3xl  ">{data?.value}</h1>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* graphs */}
+          <div className=" mt-5 text-gray-900">
+            <div className="flex items-center gap-5">
+              {/* nps overall */}
+              <div className="border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <h1 className="text-xl font-semibold ">NPS Summary</h1>
+              </div>
+
+              {/* average nps */}
+              <div className="border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <h1 className="text-xl font-semibold ">Average NPS</h1>
+              </div>
+            </div>
+
+            {/* nps over time */}
+            <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+              <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

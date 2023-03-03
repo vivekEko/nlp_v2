@@ -16,9 +16,11 @@
     "firebase": "^9.17.1",
     "framer-motion": "^10.0.1",
     "react": "^18.2.0",
+    "react-date-range": "^1.4.0",
     "react-dom": "^18.2.0",
     "react-loader-spinner": "^5.3.4",
     "react-router-dom": "^6.8.1",
+    "recharts": "^2.4.3",
     "typewriter-effect": "^2.19.0"
   },
   "devDependencies": {

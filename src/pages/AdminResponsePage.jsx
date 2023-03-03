@@ -67,6 +67,8 @@ const AdminResponsePage = () => {
           </div>
         </div>
       </header>
+
+      {/* main body */}
     </div>
   );
 };
