@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
@@ -6,12 +6,39 @@ import LockRoundedIcon from "@mui/icons-material/LockRounded";
 import { DateRangePicker } from "react-date-range";
 import { addDays } from "date-fns";
 import CalendarMonthRoundedIcon from "@mui/icons-material/CalendarMonthRounded";
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import {
+  Area,
+  AreaChart,
+  Bar,
+  CartesianGrid,
+  Cell,
+  ComposedChart,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
+import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
+import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
+import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
 const AdminAnalyticsPage = () => {
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
   const [calendarStatus, setCalendarStatus] = useState(false);
+  const [activeGraph, setActiveGraph] = useState({
+    nps: true,
+    promoters: false,
+    passives: false,
+    detractors: false,
+  });
+
+  const [selectGraphStatus, setSelectGraphStatus] = useState({
+    avg_nps: false,
+    nps_over_time: false,
+  });
 
   function handleSelect(ranges) {
     setStartDate(ranges?.selection?.startDate);
@@ -49,7 +76,7 @@ const AdminAnalyticsPage = () => {
     ],
   };
 
-  const pageData = {
+  const pageData2 = {
     cards: [
       {
         title: "Responses",
@@ -82,6 +109,21 @@ const AdminAnalyticsPage = () => {
         unit: null,
       },
     ],
+    legends: {
+      avg_nps: [
+        { name: "Promoters", color: "#00AC69", status: false },
+        { name: "Passives", color: "#939799", status: false },
+        { name: "Detractors", color: "#DB2B39", status: true },
+        { name: "Overall", color: "#0094E0", status: true },
+      ],
+
+      nps_over_time: [
+        { name: "Promoters", color: "#00AC69", status: false },
+        { name: "Passives", color: "#939799", status: false },
+        { name: "Detractors", color: "#DB2B39", status: true },
+        { name: "NPS", color: "#0094E0", status: true },
+      ],
+    },
     graphs: {
       nps_pie_bar: {
         nps_score: 49,
@@ -96,21 +138,240 @@ const AdminAnalyticsPage = () => {
         {
           label: "Promoters",
           percentage: 72,
-          color: "#00AC69",
+          color: "url(#promoterGradient)",
         },
         {
           label: "Passives",
           percentage: 19,
-          color: "#4D5552",
+          color: "url(#passiveGradient)",
         },
         {
           label: "Detractors",
           percentage: 8,
-          color: "#DB2B39",
+          color: "url(#detractorGradient)",
+        },
+      ],
+      avg_nps: [
+        {
+          month: "Jun",
+          year: "2014",
+          nps: 45,
+          promoter: 59,
+          passive: 27,
+          detractor: 14,
+        },
+        {
+          month: "Jul",
+          year: "2014",
+          nps: 13,
+          promoter: 46,
+          passive: 21,
+          detractor: 33,
+        },
+        {
+          month: "Aug",
+          year: "2014",
+          nps: 10,
+          promoter: 41,
+          passive: 28,
+          detractor: 31,
+        },
+        {
+          month: "Sep",
+          year: "2014",
+          nps: 48,
+          promoter: 64,
+          passive: 20,
+          detractor: 16,
+        },
+        {
+          month: "Oct",
+          year: "2014",
+          nps: 39,
+          promoter: 56,
+          passive: 27,
+          detractor: 17,
+        },
+        {
+          month: "Nov",
+          year: "2014",
+          nps: 51,
+          promoter: 60,
+          passive: 32,
+          detractor: 9,
+        },
+        {
+          month: "Dec",
+          year: "2014",
+          nps: 51,
+          promoter: 62,
+          passive: 27,
+          detractor: 11,
+        },
+        {
+          month: "Jan",
+          year: "2015",
+          nps: 27,
+          promoter: 32,
+          passive: 9,
+          detractor: 5,
+        },
+        {
+          month: "Feb",
+          year: "2015",
+          nps: 30,
+          promoter: 30,
+          passive: 4,
+          detractor: 0,
+        },
+        {
+          month: "Mar",
+          year: "2015",
+          nps: 28,
+          promoter: 35,
+          passive: 14,
+          detractor: 7,
+        },
+        {
+          month: "Apr",
+          year: "2015",
+          nps: 48,
+          promoter: 51,
+          passive: 9,
+          detractor: 3,
+        },
+        {
+          month: "May",
+          year: "2015",
+          nps: 32,
+          promoter: 33,
+          passive: 12,
+          detractor: 1,
+        },
+        {
+          month: "Jun",
+          year: "2015",
+          nps: 30,
+          promoter: 37,
+          passive: 11,
+          detractor: 7,
+        },
+      ],
+      nps_over_time: [
+        {
+          month: "Jun",
+          year: "2014",
+          nps: 45,
+          promoter: 59,
+          passive: 27,
+          detractor: 14,
+        },
+        {
+          month: "Jul",
+          year: "2014",
+          nps: 13,
+          promoter: 46,
+          passive: 21,
+          detractor: 33,
+        },
+        {
+          month: "Aug",
+          year: "2014",
+          nps: 10,
+          promoter: 41,
+          passive: 28,
+          detractor: 31,
+        },
+        {
+          month: "Sep",
+          year: "2014",
+          nps: 48,
+          promoter: 64,
+          passive: 20,
+          detractor: 16,
+        },
+        {
+          month: "Oct",
+          year: "2014",
+          nps: 39,
+          promoter: 56,
+          passive: 27,
+          detractor: 17,
+        },
+        {
+          month: "Nov",
+          year: "2014",
+          nps: 51,
+          promoter: 60,
+          passive: 32,
+          detractor: 9,
+        },
+        {
+          month: "Dec",
+          year: "2014",
+          nps: 51,
+          promoter: 62,
+          passive: 27,
+          detractor: 11,
+        },
+        {
+          month: "Jan",
+          year: "2015",
+          nps: 27,
+          promoter: 32,
+          passive: 9,
+          detractor: 5,
+        },
+        {
+          month: "Feb",
+          year: "2015",
+          nps: 30,
+          promoter: 30,
+          passive: 4,
+          detractor: 0,
+        },
+        {
+          month: "Mar",
+          year: "2015",
+          nps: 28,
+          promoter: 35,
+          passive: 14,
+          detractor: 7,
+        },
+        {
+          month: "Apr",
+          year: "2015",
+          nps: 48,
+          promoter: 51,
+          passive: 9,
+          detractor: 3,
+        },
+        {
+          month: "May",
+          year: "2015",
+          nps: 32,
+          promoter: 33,
+          passive: 12,
+          detractor: 1,
+        },
+        {
+          month: "Jun",
+          year: "2015",
+          nps: 30,
+          promoter: 37,
+          passive: 11,
+          detractor: 7,
         },
       ],
     },
   };
+
+  const [pageData, setPageData] = useState({});
+
+  useEffect(() => {
+    setPageData(pageData2);
+  }, []);
+
   return (
     <div>
       {/* response header */}
@@ -196,7 +457,7 @@ const AdminAnalyticsPage = () => {
             <div className="flex items-center gap-5">
               {/* nps summary */}
               <div className="border bg-white rounded-lg p-5 flex-1">
-                <h1 className="text-xl font-semibold ">NPS Summary</h1>
+                <h1 className="text-xl font-semibold ">Net Promoter Score </h1>
 
                 <div className="mt-5">
                   <div className="flex gap-5 items-center">
@@ -219,6 +480,7 @@ const AdminAnalyticsPage = () => {
                         <PieChart key={pageData?.graphs?.nps_pie_bar}>
                           {/* <Tooltip cursor={false} content={<CustomTooltip />} /> */}
                           <Tooltip cursor={false} />
+
                           <Pie
                             data={pageData?.graphs?.nps_pie}
                             dataKey="percentage"
@@ -354,14 +616,500 @@ const AdminAnalyticsPage = () => {
               </div>
 
               {/* average nps */}
-              <div className="border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
-                <h1 className="text-xl font-semibold ">Average NPS</h1>
+              <div className="border bg-white rounded-lg p-5  flex-1 ">
+                <div className="flex justify-between items-center gap-5">
+                  <h1 className="text-xl font-semibold">Average NPS</h1>
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            avg_nps: !selectGraphStatus?.avg_nps,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.avg_nps && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.avg_nps?.map((data, index) => {
+                            return (
+                              <div
+                                key={index}
+                                className="flex gap-2 items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                onClick={() => {
+                                  setPageData({
+                                    ...pageData,
+                                    legends: {
+                                      // ...pageData?.legends,
+                                      avg_nps: pageData?.legends?.avg_nps?.map(
+                                        (a_data, a_index) => {
+                                          if (a_index === index) {
+                                            return {
+                                              ...a_data,
+                                              status: !a_data?.status,
+                                            };
+                                          } else return a_data;
+                                        }
+                                      ),
+                                    },
+                                  });
+                                }}
+                              >
+                                <div
+                                  style={{ backgroundColor: data?.color }}
+                                  className="w-[8px] aspect-square  rounded-full"
+                                ></div>
+                                <div>{data?.name}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={220} className="">
+                    <ComposedChart
+                      data={pageData?.graphs?.avg_nps}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <defs>
+                        <linearGradient
+                          id="npsGradient"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#009DFF"
+                            stopOpacity={1}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#009DFF"
+                            stopOpacity={0.7}
+                          />
+                        </linearGradient>
+
+                        <linearGradient
+                          id="promoterGradient"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#00AC69"
+                            stopOpacity={1}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#00AC69"
+                            stopOpacity={0.7}
+                          />
+                        </linearGradient>
+
+                        <linearGradient
+                          id="passiveGradient"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#939799"
+                            stopOpacity={1}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#939799"
+                            stopOpacity={0.7}
+                          />
+                        </linearGradient>
+
+                        <linearGradient
+                          id="detractorGradient"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#DB2B39"
+                            stopOpacity={1}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#DB2B39"
+                            stopOpacity={0.7}
+                          />
+                        </linearGradient>
+                      </defs>
+
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={10}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        type="number"
+                        // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={10}
+                        tickFormatter={(number) => `${number.toFixed(2)}`}
+                        margin={{ right: 20 }}
+                      />
+
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {pageData?.legends?.avg_nps[0]?.status && (
+                        <Bar
+                          barSize={20}
+                          name="Promoters"
+                          dataKey="promoter"
+                          // fill="#00AC69"
+                          fill="url(#promoterGradient)"
+                          radius={[5, 5, 0, 0]}
+                        />
+                      )}
+
+                      {pageData?.legends?.avg_nps[1]?.status && (
+                        <Bar
+                          barSize={20}
+                          name="Passives"
+                          dataKey="passive"
+                          // fill="#939799"
+                          fill="url(#passiveGradient)"
+                          radius={[5, 5, 0, 0]}
+                        />
+                      )}
+                      {pageData?.legends?.avg_nps[2]?.status && (
+                        <Bar
+                          barSize={20}
+                          name="Detractors"
+                          dataKey="detractor"
+                          // fill="#DB2B39"
+                          fill="url(#detractorGradient)"
+                          radius={[5, 5, 0, 0]}
+                        />
+                      )}
+                      {pageData?.legends?.avg_nps[3]?.status && (
+                        <Bar
+                          barSize={20}
+                          name="Overall"
+                          dataKey="nps"
+                          // fill="#0094E0"
+                          fill="url(#npsGradient)"
+                          radius={[5, 5, 0, 0]}
+                        />
+                      )}
+                    </ComposedChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
 
             {/* nps over time */}
             <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
-              <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+              <div className="flex justify-between items-center gap-2">
+                <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                {/* legend */}
+                <div className="flex items-center gap-5 justify-end my-5">
+                  {pageData?.legends?.nps_over_time?.map((data, index) => {
+                    return (
+                      <div key={index}>
+                        <div className="flex items-center gap-1">
+                          <div
+                            style={{ backgroundColor: data?.color }}
+                            className=" h-[8px] w-[8px] rounded-full"
+                          ></div>
+                          <div className="text-[12px] opacity-80">
+                            {data?.name}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* select , download and reset */}
+                <div className="flex gap-2 items-center ">
+                  <button title="Download">
+                    <DownloadRoundedIcon />
+                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => {
+                        setSelectGraphStatus({
+                          nps_over_time: !selectGraphStatus?.nps_over_time,
+                        });
+                      }}
+                      className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                    >
+                      <span>Select graph</span>
+                      <span>
+                        <KeyboardArrowDownRoundedIcon />
+                      </span>
+                    </button>
+
+                    {selectGraphStatus?.nps_over_time && (
+                      <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                        {pageData?.legends?.nps_over_time?.map(
+                          (data, index) => {
+                            return (
+                              <div
+                                key={index}
+                                className="flex gap-2 items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                onClick={() => {
+                                  setPageData({
+                                    ...pageData,
+                                    legends: {
+                                      // ...pageData?.legends,
+                                      nps_over_time:
+                                        pageData?.legends?.nps_over_time?.map(
+                                          (a_data, a_index) => {
+                                            if (a_index === index) {
+                                              return {
+                                                ...a_data,
+                                                status: !a_data?.status,
+                                              };
+                                            } else return a_data;
+                                          }
+                                        ),
+                                    },
+                                  });
+                                }}
+                              >
+                                <div
+                                  style={{ backgroundColor: data?.color }}
+                                  className="w-[8px] aspect-square  rounded-full"
+                                ></div>
+                                <div>{data?.name}</div>
+                              </div>
+                            );
+                          }
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <button className="scale-x-[-1]" title="Reset">
+                    <ReplayRoundedIcon />
+                  </button>
+                </div>
+              </div>
+
+              {/* Graph */}
+              <div className="relative ">
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart
+                    key={new Date()}
+                    data={pageData?.graphs?.nps_over_time}
+                    margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                  >
+                    {/* <defs>
+                      <linearGradient
+                        id="npsGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#009DFF"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#009DFF"
+                          stopOpacity={0.05}
+                        />
+                      </linearGradient>
+
+                      <linearGradient
+                        id="promoterGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#00AC69"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#00AC69"
+                          stopOpacity={0.05}
+                        />
+                      </linearGradient>
+
+                      <linearGradient
+                        id="passiveGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#939799"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#939799"
+                          stopOpacity={0.05}
+                        />
+                      </linearGradient>
+
+                      <linearGradient
+                        id="detractorGradient"
+                        x1="0"
+                        y1="0"
+                        x2="0"
+                        y2="1"
+                      >
+                        <stop
+                          offset="5%"
+                          stopColor="#DB2B39"
+                          stopOpacity={0.8}
+                        />
+                        <stop
+                          offset="95%"
+                          stopColor="#DB2B39"
+                          stopOpacity={0.05}
+                        />
+                      </linearGradient>
+                    </defs> */}
+                    <CartesianGrid
+                      vertical={false}
+                      horizontal={false}
+                      opacity={0.5}
+                    />
+                    <XAxis
+                      dataKey="month"
+                      fontSize={12}
+                      axisLine={false}
+                      tickLine={false}
+                      tickCount={6}
+                      angle={0}
+                      textAnchor="middle"
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      fontSize={12}
+                      tickCount={4}
+                      tickFormatter={(number) => `${number}`}
+                      margin={{ right: 20 }}
+                    />
+                    <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                    {pageData?.legends?.avg_nps[0]?.status && (
+                      <Area
+                        type="monotone"
+                        name="promoter"
+                        dataKey="promoter"
+                        stroke="#00AC69 "
+                        dot={false}
+                        strokeWidth={4}
+                        fill="url(#promoterGradient)"
+                      />
+                    )}
+
+                    {pageData?.legends?.avg_nps[1]?.status && (
+                      <Area
+                        type="monotone"
+                        name="passive"
+                        dataKey="passive"
+                        stroke="#939799 "
+                        dot={false}
+                        strokeWidth={4}
+                        fill="url(#passiveGradient)"
+                      />
+                    )}
+
+                    {pageData?.legends?.avg_nps[2]?.status && (
+                      <Area
+                        type="monotone"
+                        name="detractor"
+                        dataKey="detractor"
+                        stroke="#DB2B39 "
+                        dot={false}
+                        strokeWidth={4}
+                        fill="url(#detractorGradient)"
+                      />
+                    )}
+
+                    {pageData?.legends?.avg_nps[3]?.status && (
+                      <Area
+                        type="monotone"
+                        name="NPS"
+                        dataKey="NPS"
+                        stroke="#0094E0 "
+                        dot={false}
+                        strokeWidth={4}
+                        fill="url(#npsGradient)"
+                      />
+                    )}
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </div>
@@ -371,3 +1119,32 @@ const AdminAnalyticsPage = () => {
 };
 
 export default AdminAnalyticsPage;
+
+function CustomTooltip({ active, payload, label }) {
+  if (active) {
+    return (
+      <div className="rounded-md bg-[#fafafa] text-[#1a1a1a] p-[1rem] shadow-2xl shadow-[#000000]">
+        <h1 className="capitalize mr-2 text-[13px] mb-2 font-bold ">
+          {payload[0]?.payload?.month}, {payload[0]?.payload?.year}
+        </h1>
+        {payload?.map((data) => (
+          <div key={Math.random()} className="">
+            <div className="flex justify-start items-center ">
+              <div
+                style={{ background: data?.color }}
+                className={`h-[5px] w-[5px] rounded-full mr-2 `}
+              ></div>
+              <div className="flex justify-between items-center  w-full">
+                <span className="capitalize mr-2 text-[11px] font-semibold">
+                  {data?.name}:
+                </span>
+                <span className="text-[11px] font-semibold">{data?.value}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+}
