@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
@@ -24,7 +24,18 @@ import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+
+import {
+  exportComponentAsJPEG,
+  exportComponentAsPDF,
+  exportComponentAsPNG,
+} from "react-component-export-image";
+import { useScreenshot, createFileName } from "use-react-screenshot";
+
 const AdminAnalyticsPage = () => {
+  // local variables
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
   const [calendarStatus, setCalendarStatus] = useState(false);
@@ -34,23 +45,15 @@ const AdminAnalyticsPage = () => {
     passives: false,
     detractors: false,
   });
-
   const [selectGraphStatus, setSelectGraphStatus] = useState({
     avg_nps: false,
     nps_over_time: false,
   });
-
-  function handleSelect(ranges) {
-    setStartDate(ranges?.selection?.startDate);
-    setEndDate(ranges?.selection?.endDate);
-  }
-
   const selectionRange = {
     startDate: startDate,
     endDate: endDate,
     key: "selection",
   };
-
   const header_data = {
     survey_name: "Survey Name",
     links_list: [
@@ -112,14 +115,14 @@ const AdminAnalyticsPage = () => {
     legends: {
       avg_nps: [
         { name: "Promoters", color: "#00AC69", status: false },
-        { name: "Passives", color: "#939799", status: false },
+        { name: "Passives", color: "#4D5552", status: false },
         { name: "Detractors", color: "#DB2B39", status: true },
         { name: "Overall", color: "#0094E0", status: true },
       ],
 
       nps_over_time: [
         { name: "Promoters", color: "#00AC69", status: false },
-        { name: "Passives", color: "#939799", status: false },
+        { name: "Passives", color: "#4D5552", status: false },
         { name: "Detractors", color: "#DB2B39", status: true },
         { name: "NPS", color: "#0094E0", status: true },
       ],
@@ -365,12 +368,31 @@ const AdminAnalyticsPage = () => {
       ],
     },
   };
-
   const [pageData, setPageData] = useState({});
 
+  // functions
+  function handleSelect(ranges) {
+    setStartDate(ranges?.selection?.startDate);
+    setEndDate(ranges?.selection?.endDate);
+  }
+
+  // Lifecycle calls
   useEffect(() => {
     setPageData(pageData2);
   }, []);
+
+  const createPDF = async () => {
+    const pdf = new jsPDF("landscape", "pt", "a4");
+    const data = await html2canvas(document.querySelector("#nps_summary"));
+    const img = data.toDataURL("image/png");
+    const imgProperties = pdf.getImageProperties(img);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProperties.height * pdfWidth) / imgProperties.width;
+    pdf.addImage(img, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save("shipping_label.pdf");
+  };
+
+  const npsSummary = useRef();
 
   return (
     <div>
@@ -410,10 +432,9 @@ const AdminAnalyticsPage = () => {
       </header>
 
       <div className="bg-gray-50 ">
-        <div className="w-[80%] h-full mx-auto py-5">
+        <div className="w-[80%] h-full mx-auto py-5 pt-0">
           {/* filter */}
-          <div>
-            {/* date range */}
+          {/* <div>
             <div className="relative">
               <button
                 className="text-sm text-gray-500 flex gap-2 items-center bg-white p-2 px-3 rounded-lg w-fit border"
@@ -438,7 +459,7 @@ const AdminAnalyticsPage = () => {
                 </div>
               )}
             </div>
-          </div>
+          </div> */}
 
           {/* cards */}
           <div className="bg-white rounded-lg border mt-5 flex justify-between items-center divide-x text-gray-900">
@@ -456,10 +477,29 @@ const AdminAnalyticsPage = () => {
           <div className=" mt-5 text-gray-900">
             <div className="flex items-center gap-5">
               {/* nps summary */}
-              <div className="border bg-white rounded-lg p-5 flex-1">
-                <h1 className="text-xl font-semibold ">Net Promoter Score </h1>
+              <div
+                ref={npsSummary}
+                className="border bg-white rounded-lg p-5 flex-1"
+              >
+                <div className="flex justify-between items-center">
+                  <h1 className="text-xl font-semibold ">
+                    Net Promoter Score{" "}
+                  </h1>
 
-                <div className="mt-5">
+                  {/* <button onClick={() => {
+                    exportComponentAsPDF(npsSummary)
+                    }}> */}
+
+                  <button
+                    onClick={() => exportComponentAsPNG(npsSummary)}
+                    title="Download"
+                    className="text-gray-600"
+                  >
+                    <DownloadRoundedIcon />
+                  </button>
+                </div>
+
+                <div className="mt-8">
                   <div className="flex gap-5 items-center">
                     {/* pie */}
                     <div className="flex-[0.3] relative">
@@ -477,9 +517,12 @@ const AdminAnalyticsPage = () => {
                         width="100%"
                         className=""
                       >
-                        <PieChart key={pageData?.graphs?.nps_pie_bar}>
-                          {/* <Tooltip cursor={false} content={<CustomTooltip />} /> */}
-                          <Tooltip cursor={false} />
+                        <PieChart
+                          height={220}
+                          width={250}
+                          key={pageData?.graphs?.nps_pie_bar}
+                        >
+                          <Tooltip cursor={false} content={<CustomTooltip />} />
 
                           <Pie
                             data={pageData?.graphs?.nps_pie}
@@ -495,6 +538,7 @@ const AdminAnalyticsPage = () => {
                             startAngle={-270}
                             endAngle={-630}
                             minAngle={15}
+                            fill="#1e1e1e1e"
                           >
                             {pageData?.graphs?.nps_pie?.map((entry, index) => (
                               <Cell key={index} fill={entry?.color} />
@@ -617,28 +661,11 @@ const AdminAnalyticsPage = () => {
 
               {/* average nps */}
               <div className="border bg-white rounded-lg p-5  flex-1 ">
-                <div className="flex justify-between items-center gap-5">
+                <div className="flex justify-between items-center gap-5 ">
                   <h1 className="text-xl font-semibold">Average NPS</h1>
-                  {/* legend */}
-                  <div className="flex items-center gap-5 justify-end my-5">
-                    {pageData?.legends?.avg_nps?.map((data, index) => {
-                      return (
-                        <div key={index}>
-                          <div className="flex items-center gap-1">
-                            <div
-                              style={{ backgroundColor: data?.color }}
-                              className=" h-[8px] w-[8px] rounded-full"
-                            ></div>
-                            <div className="text-[12px] opacity-80">
-                              {data?.name}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+
                   {/* select , download and reset */}
-                  <div className="flex gap-2 items-center ">
+                  <div className="flex gap-2 items-center text-gray-700">
                     <button title="Download">
                       <DownloadRoundedIcon />
                     </button>
@@ -701,6 +728,25 @@ const AdminAnalyticsPage = () => {
                   </div>
                 </div>
 
+                {/* legend */}
+                <div className="flex items-center gap-5 justify-end my-5">
+                  {pageData?.legends?.avg_nps?.map((data, index) => {
+                    return (
+                      <div key={index}>
+                        <div className="flex items-center gap-1">
+                          <div
+                            style={{ backgroundColor: data?.color }}
+                            className=" h-[8px] w-[8px] rounded-full"
+                          ></div>
+                          <div className="text-[12px] opacity-80">
+                            {data?.name}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
                 {/* Graph */}
                 <div className="relative mt-5">
                   <ResponsiveContainer width="100%" height={220} className="">
@@ -756,12 +802,12 @@ const AdminAnalyticsPage = () => {
                         >
                           <stop
                             offset="5%"
-                            stopColor="#939799"
+                            stopColor="#4D5552"
                             stopOpacity={1}
                           />
                           <stop
                             offset="95%"
-                            stopColor="#939799"
+                            stopColor="#4D5552"
                             stopOpacity={0.7}
                           />
                         </linearGradient>
@@ -820,7 +866,7 @@ const AdminAnalyticsPage = () => {
                           dataKey="promoter"
                           // fill="#00AC69"
                           fill="url(#promoterGradient)"
-                          radius={[5, 5, 0, 0]}
+                          radius={[20, 20, 0, 0]}
                         />
                       )}
 
@@ -829,9 +875,9 @@ const AdminAnalyticsPage = () => {
                           barSize={20}
                           name="Passives"
                           dataKey="passive"
-                          // fill="#939799"
+                          // fill="#4D5552"
                           fill="url(#passiveGradient)"
-                          radius={[5, 5, 0, 0]}
+                          radius={[20, 20, 0, 0]}
                         />
                       )}
                       {pageData?.legends?.avg_nps[2]?.status && (
@@ -841,7 +887,7 @@ const AdminAnalyticsPage = () => {
                           dataKey="detractor"
                           // fill="#DB2B39"
                           fill="url(#detractorGradient)"
-                          radius={[5, 5, 0, 0]}
+                          radius={[20, 20, 0, 0]}
                         />
                       )}
                       {pageData?.legends?.avg_nps[3]?.status && (
@@ -851,7 +897,7 @@ const AdminAnalyticsPage = () => {
                           dataKey="nps"
                           // fill="#0094E0"
                           fill="url(#npsGradient)"
-                          radius={[5, 5, 0, 0]}
+                          radius={[20, 20, 0, 0]}
                         />
                       )}
                     </ComposedChart>
@@ -952,7 +998,7 @@ const AdminAnalyticsPage = () => {
               </div>
 
               {/* Graph */}
-              <div className="relative ">
+              <div className="relative mt-5">
                 <ResponsiveContainer width="100%" height={300}>
                   <AreaChart
                     key={new Date()}
@@ -1007,12 +1053,12 @@ const AdminAnalyticsPage = () => {
                       >
                         <stop
                           offset="5%"
-                          stopColor="#939799"
+                          stopColor="#4D5552"
                           stopOpacity={0.8}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#939799"
+                          stopColor="#4D5552"
                           stopOpacity={0.05}
                         />
                       </linearGradient>
@@ -1077,7 +1123,7 @@ const AdminAnalyticsPage = () => {
                         type="monotone"
                         name="passive"
                         dataKey="passive"
-                        stroke="#939799 "
+                        stroke="#4D5552 "
                         dot={false}
                         strokeWidth={4}
                         fill="url(#passiveGradient)"
@@ -1120,27 +1166,141 @@ const AdminAnalyticsPage = () => {
 
 export default AdminAnalyticsPage;
 
+const renderActiveShape = (props) => {
+  const RADIAN = Math.PI / 180;
+  const {
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    startAngle,
+    endAngle,
+    fill,
+    payload,
+    percent,
+    value,
+  } = props;
+  const sin = Math.sin(-RADIAN * midAngle);
+  const cos = Math.cos(-RADIAN * midAngle);
+  const sx = cx + (outerRadius + 10) * cos;
+  const sy = cy + (outerRadius + 10) * sin;
+  const mx = cx + (outerRadius + 30) * cos;
+  const my = cy + (outerRadius + 30) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+  const ey = my;
+  const textAnchor = cos >= 0 ? "start" : "end";
+
+  return (
+    <g>
+      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
+        {payload.name}
+      </text>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <Sector
+        cx={cx}
+        cy={cy}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        innerRadius={outerRadius + 6}
+        outerRadius={outerRadius + 10}
+        fill={fill}
+      />
+      <path
+        d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
+        stroke={fill}
+        fill="none"
+      />
+      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
+      <text
+        x={ex + (cos >= 0 ? 1 : -1) * 12}
+        y={ey}
+        textAnchor={textAnchor}
+        fill="#333"
+      >{`PV ${value}`}</text>
+      <text
+        x={ex + (cos >= 0 ? 1 : -1) * 12}
+        y={ey}
+        dy={18}
+        textAnchor={textAnchor}
+        fill="#999"
+      >
+        {`(Rate ${(percent * 100).toFixed(2)}%)`}
+      </text>
+    </g>
+  );
+};
+
 function CustomTooltip({ active, payload, label }) {
+  console.log("payload", payload);
   if (active) {
     return (
-      <div className="rounded-md bg-[#fafafa] text-[#1a1a1a] p-[1rem] shadow-2xl shadow-[#000000]">
-        <h1 className="capitalize mr-2 text-[13px] mb-2 font-bold ">
-          {payload[0]?.payload?.month}, {payload[0]?.payload?.year}
-        </h1>
+      <div className="rounded-md bg-[#fafafa] text-[#1a1a1a] p-[1rem] shadow-2xl shadow-[#000000] ">
+        {payload[0]?.payload?.month && (
+          <h1 className="capitalize mr-2 text-lg mb-2 font-bold ">
+            {payload[0]?.payload?.month}, {payload[0]?.payload?.year}
+          </h1>
+        )}
+
         {payload?.map((data) => (
           <div key={Math.random()} className="">
-            <div className="flex justify-start items-center ">
-              <div
-                style={{ background: data?.color }}
-                className={`h-[5px] w-[5px] rounded-full mr-2 `}
-              ></div>
-              <div className="flex justify-between items-center  w-full">
-                <span className="capitalize mr-2 text-[11px] font-semibold">
-                  {data?.name}:
-                </span>
-                <span className="text-[11px] font-semibold">{data?.value}</span>
+            {data?.payload?.cx && (
+              <div>
+                <div className="flex items-center gap-2">
+                  <div className="flex h-full items-center ">
+                    <svg className="w-[10px] rounded-full overflow-hidden aspect-square ">
+                      <circle
+                        cx="50%"
+                        cy="50%"
+                        r="5"
+                        fill={data?.payload?.color}
+                      />
+                    </svg>
+                  </div>
+                  <h1 className="capitalize  text-lg  font-bold ">
+                    {data?.name}
+                  </h1>
+                </div>
+
+                <div className="flex justify-start items-center gap-1 ml-5">
+                  <div className="flex justify-between items-center  w-full">
+                    <span className="capitalize mr-2 text-base text-gray-600 font-semibold">
+                      {data?.dataKey}:
+                    </span>
+                    <span className="text-base text-gray-600 font-semibold">
+                      {data?.value}%
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
+            {!data?.payload?.cx && (
+              <div className="flex justify-start items-center gap-1 ">
+                <div>
+                  {data?.color && (
+                    <svg className="w-[10px] rounded-full overflow-hidden aspect-square flex justify-center items-center">
+                      <circle cx="50%" cy="50%" r="3.5" fill={data?.color} />
+                    </svg>
+                  )}
+                </div>
+                <div className="flex justify-between items-center  w-full">
+                  <span className="capitalize mr-2 text-base text-gray-600 font-semibold">
+                    {data?.name}:
+                  </span>
+                  <span className="text-base text-gray-600 font-semibold">
+                    {data?.value}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
