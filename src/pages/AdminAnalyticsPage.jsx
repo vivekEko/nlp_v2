@@ -24,15 +24,14 @@ import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
 import DownloadRoundedIcon from "@mui/icons-material/DownloadRounded";
 import ReplayRoundedIcon from "@mui/icons-material/ReplayRounded";
 import KeyboardArrowDownRoundedIcon from "@mui/icons-material/KeyboardArrowDownRounded";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
-
 import {
   exportComponentAsJPEG,
   exportComponentAsPDF,
   exportComponentAsPNG,
 } from "react-component-export-image";
-import { useScreenshot, createFileName } from "use-react-screenshot";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const AdminAnalyticsPage = () => {
   // local variables
@@ -393,8 +392,46 @@ const AdminAnalyticsPage = () => {
 
   const npsSummary = useRef();
 
+  const createPDF = async () => {
+    // const pdf = new jsPDF("potrait", "pt", "a4");
+    // const data = await html2canvas(document.querySelector("#pdf"), {
+    //   allowTaint: true,
+    //   imageTimeout: 15000,
+    // });
+    // const img = data.toDataURL("image/png");
+    // const imgProperties = pdf.getImageProperties(img);
+    // const pdfWidth = pdf.internal.pageSize.getWidth();
+    // const pdfHeight = (imgProperties.height * pdfWidth) / imgProperties.width;
+    // pdf.addImage(img, "PNG", 0, 0, pdfWidth, pdfHeight);
+    // pdf.save("shipping_label.pdf");
+
+    const canvas = await html2canvas(document.querySelector("#pdf"), {
+      allowTaint: true,
+      imageTimeout: 15000,
+    });
+    var imgData = canvas.toDataURL("image/png");
+    var imgWidth = 210;
+    var pageHeight = 295;
+    var imgHeight = (canvas.height * imgWidth) / canvas.width;
+    var heightLeft = imgHeight;
+    var doc = new jsPDF("p", "mm", "a4");
+    var position = 0; // give some top padding to first page
+
+    doc.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight + 10);
+    heightLeft -= pageHeight;
+
+    while (heightLeft >= 0) {
+      // position += heightLeft - imgHeight; // top padding for other pages
+      position = heightLeft - imgHeight;
+      doc.addPage();
+      doc.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight + 10);
+      heightLeft -= pageHeight;
+    }
+    doc.save("file.pdf");
+  };
+
   return (
-    <div>
+    <div id="pdf">
       {/* response header */}
       <header className="flex justify-between items-center px-10 border-b">
         <div className="w-full">
@@ -429,7 +466,7 @@ const AdminAnalyticsPage = () => {
           </div>
         </div>
       </header>
-
+      {/* main body */}
       <div className="bg-gray-50 ">
         <div className="w-[80%] h-full mx-auto py-5 pt-5">
           {/* filter */}
@@ -460,207 +497,510 @@ const AdminAnalyticsPage = () => {
             </div>
           </div> */}
 
-          {/* cards */}
-          <div className="bg-white rounded-lg border  flex justify-between items-center divide-x text-gray-900">
-            {pageData?.cards?.map((data, index) => {
-              return (
-                <div className="w-full flex flex-col justify-center items-center p-5 gap-2">
-                  <h2 className=" text-gray-500 ">{data?.title}</h2>
-                  <h1 className="text-3xl  ">{data?.value}</h1>
-                </div>
-              );
-            })}
+          {/* heading */}
+          <div className="flex  items-center -mb-3">
+            <div className=" h-[10px] border-t rounded-tl-xl  w-full"></div>
+            <h1
+              className="text-gray-800 text-2xl font-semibold text-center  w-fit mx-auto  bg-gray-50  px-10
+            "
+            >
+              NPS
+            </h1>
+            <div className="h-[10px] border-t rounded-tr-xl   w-full"></div>
           </div>
+          <div className="p-5 border border-t-transparent rounded-b-lg ">
+            {/* cards */}
+            <div className="bg-white rounded-lg border  flex justify-between items-center divide-x text-gray-900">
+              {pageData?.cards?.map((data, index) => {
+                return (
+                  <div className="w-full flex flex-col justify-center items-center p-5 gap-2">
+                    <h2 className=" text-gray-500 ">{data?.title}</h2>
+                    <h1 className="text-3xl  ">{data?.value}</h1>
+                  </div>
+                );
+              })}
+            </div>
 
-          {/* graphs */}
-          <div className=" mt-5 text-gray-900">
-            <div className="flex items-center gap-5">
-              {/* nps summary */}
-              <div
-                ref={npsSummary}
-                className="border bg-white rounded-lg p-5 flex-1"
-              >
-                <div className="flex justify-between items-center">
-                  <h1 className="text-xl font-semibold ">
-                    Net Promoter Score{" "}
-                  </h1>
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
 
-                  <button
-                    onClick={() => exportComponentAsPNG(npsSummary)}
-                    title="Download"
-                    className="text-gray-600"
-                  >
-                    <DownloadRoundedIcon />
-                  </button>
-                </div>
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
 
-                <div className="mt-8">
-                  <div className="flex gap-5 items-center">
-                    {/* pie */}
-                    <div className="flex-[0.3] relative">
-                      {/* Pie graph */}
-                      <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
-                        <div className="flex flex-col justify-center items-center">
-                          <h1 className="text-[18px] opacity-80">NPS</h1>
-                          <p className="opacity-80 text-[24px] font-semibold">
-                            {pageData?.graphs?.nps_pie_bar?.nps_score}%
-                          </p>
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <ResponsiveContainer
-                        height={250}
-                        width="100%"
-                        className=""
-                      >
-                        <PieChart
-                          height={220}
-                          width={250}
-                          key={pageData?.graphs?.nps_pie_bar}
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
                         >
-                          <Tooltip cursor={false} content={<CustomTooltip />} />
-
-                          <Pie
-                            data={pageData?.graphs?.nps_pie}
-                            dataKey="percentage"
-                            nameKey="label"
-                            cx="50%"
-                            cy="50%"
-                            strokeWidth={5}
-                            innerRadius="60%"
-                            outerRadius="100%"
-                            cornerRadius={6}
-                            paddingAngle={-1}
-                            startAngle={-270}
-                            endAngle={-630}
-                            minAngle={15}
-                            fill="#1e1e1e1e"
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
                           >
-                            {pageData?.graphs?.nps_pie?.map((entry, index) => (
-                              <Cell key={index} fill={entry?.color} />
-                            ))}
-                          </Pie>
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
 
-                    {/* pie bar */}
-                    <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
-                      {/* promoter */}
-                      <div>
-                        {/* head  */}
-                        <div className="flex justify-between items-center">
-                          <div className="text-gray-400 flex gap-2 ">
-                            <h3>Promoters</h3>
-                            <h4>
-                              {"(" +
-                                pageData?.graphs?.nps_pie_bar?.promoters +
-                                "%)"}
-                            </h4>
-                          </div>
-
-                          <div className="text-gray-400 flex gap-2 ">
-                            <h3>
-                              {pageData?.graphs?.nps_pie_bar?.total_promoters}
-                            </h3>
-
-                            <h4>
-                              <GroupsRoundedIcon />
-                            </h4>
-                          </div>
-                        </div>
-                        {/* bar */}
-                        <div className="bg-white rounded-xl border">
-                          <div
-                            className="bg-[#00AC69] h-[25px] rounded-xl"
-                            style={{
-                              width:
-                                pageData?.graphs?.nps_pie_bar?.promoters + "%",
-                            }}
-                          ></div>
-                        </div>
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
                       </div>
 
-                      {/* passive */}
-                      <div>
-                        {/* head  */}
-                        <div className="flex justify-between items-center">
-                          <div className="text-gray-400 flex gap-2 ">
-                            <h3>Passives</h3>
-                            <h4>
-                              {"(" +
-                                pageData?.graphs?.nps_pie_bar?.passive +
-                                "%)"}
-                            </h4>
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
                           </div>
-
-                          <div className="text-gray-400 flex gap-2 ">
-                            <h3>
-                              {pageData?.graphs?.nps_pie_bar?.total_passive}
-                            </h3>
-
-                            <h4>
-                              <GroupsRoundedIcon />
-                            </h4>
-                          </div>
-                        </div>
-                        {/* bar */}
-                        <div className="bg-white rounded-xl border">
-                          <div
-                            className="bg-[#4D5552] h-[25px] rounded-xl"
-                            style={{
-                              width:
-                                pageData?.graphs?.nps_pie_bar?.passive + "%",
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      {/* detractors */}
-                      <div>
-                        {/* head  */}
-                        <div className="flex justify-between items-center">
-                          <div className="text-gray-400 flex gap-2 ">
-                            <h3>Detractors</h3>
-                            <h4>
-                              {"(" +
-                                pageData?.graphs?.nps_pie_bar?.detractors +
-                                "%)"}
-                            </h4>
-                          </div>
-
-                          <div className="text-gray-400 flex gap-2 ">
-                            <h3>
-                              {pageData?.graphs?.nps_pie_bar?.total_detractors}
-                            </h3>
-
-                            <h4>
-                              <GroupsRoundedIcon />
-                            </h4>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
                           </div>
                         </div>
-                        {/* bar */}
-                        <div className="bg-white rounded-xl border">
-                          <div
-                            className="bg-[#DB2B39] h-[25px] rounded-xl"
-                            style={{
-                              width:
-                                pageData?.graphs?.nps_pie_bar?.detractors + "%",
-                            }}
-                          ></div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
               </div>
 
-              {/* average nps */}
-              <div className="border bg-white rounded-lg p-5  flex-1 ">
-                <div className="flex justify-between items-center gap-5 ">
-                  <h1 className="text-xl font-semibold">Average NPS</h1>
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
 
                   {/* select , download and reset */}
-                  <div className="flex gap-2 items-center text-gray-700">
+                  <div className="flex gap-2 items-center ">
                     <button title="Download">
                       <DownloadRoundedIcon />
                     </button>
@@ -668,7 +1008,7 @@ const AdminAnalyticsPage = () => {
                       <button
                         onClick={() => {
                           setSelectGraphStatus({
-                            avg_nps: !selectGraphStatus?.avg_nps,
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
                           });
                         }}
                         className="flex items-center gap-2 border px-2 py-1 rounded-lg"
@@ -679,42 +1019,61 @@ const AdminAnalyticsPage = () => {
                         </span>
                       </button>
 
-                      {selectGraphStatus?.avg_nps && (
+                      {selectGraphStatus?.nps_over_time && (
                         <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
-                          {pageData?.legends?.avg_nps?.map((data, index) => {
-                            return (
-                              <div
-                                key={index}
-                                className="flex gap-2 items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
-                                onClick={() => {
-                                  if (
-                                    selectedGraphAvgNps?.includes(data?.name)
-                                  ) {
-                                    if (selectedGraphAvgNps?.length > 1) {
-                                      setSelectedGraphAvgNps(
-                                        (selectGraphStatus) =>
-                                          arrayRemove(
-                                            selectGraphStatus,
-                                            data?.name
-                                          )
-                                      );
-                                    }
-                                  } else {
-                                    setSelectedGraphAvgNps(() => [
-                                      ...selectedGraphAvgNps,
-                                      data?.name,
-                                    ]);
-                                  }
-                                }}
-                              >
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
                                 <div
-                                  style={{ backgroundColor: data?.color }}
-                                  className="w-[8px] aspect-square  rounded-full"
-                                ></div>
-                                <div>{data?.name}</div>
-                              </div>
-                            );
-                          })}
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
                         </div>
                       )}
                     </div>
@@ -725,359 +1084,9160 @@ const AdminAnalyticsPage = () => {
                   </div>
                 </div>
 
-                {/* legend */}
-                <div className="flex items-center gap-5 justify-end my-5">
-                  {pageData?.legends?.avg_nps?.map((data, index) => {
-                    return (
-                      <div key={index}>
-                        <div className="flex items-center gap-1">
-                          <div
-                            style={{ backgroundColor: data?.color }}
-                            className=" h-[8px] w-[8px] rounded-full"
-                          ></div>
-                          <div className="text-[12px] opacity-80">
-                            {data?.name}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
                 {/* Graph */}
                 <div className="relative mt-5">
-                  <ResponsiveContainer width="100%" height={220} className="">
-                    <ComposedChart
-                      data={pageData?.graphs?.avg_nps}
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
                       margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
                     >
-                      <defs>
-                        <linearGradient
-                          id="npsGradient"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#009DFF"
-                            stopOpacity={1}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#009DFF"
-                            stopOpacity={0.7}
-                          />
-                        </linearGradient>
-
-                        <linearGradient
-                          id="promoterGradient"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#00AC69"
-                            stopOpacity={1}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#00AC69"
-                            stopOpacity={0.7}
-                          />
-                        </linearGradient>
-
-                        <linearGradient
-                          id="passiveGradient"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#4D5552"
-                            stopOpacity={1}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#4D5552"
-                            stopOpacity={0.7}
-                          />
-                        </linearGradient>
-
-                        <linearGradient
-                          id="detractorGradient"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="5%"
-                            stopColor="#DB2B39"
-                            stopOpacity={1}
-                          />
-                          <stop
-                            offset="95%"
-                            stopColor="#DB2B39"
-                            stopOpacity={0.7}
-                          />
-                        </linearGradient>
-                      </defs>
-
                       <CartesianGrid
                         vertical={false}
                         horizontal={false}
                         opacity={0.5}
                       />
-
                       <XAxis
                         dataKey="month"
                         fontSize={12}
                         axisLine={false}
                         tickLine={false}
-                        tickCount={10}
+                        tickCount={6}
                         angle={0}
                         textAnchor="middle"
                       />
                       <YAxis
-                        type="number"
-                        // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
                         axisLine={false}
                         tickLine={false}
-                        fontSize={10}
-                        tickFormatter={(number) => `${number.toFixed(2)}`}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
                         margin={{ right: 20 }}
                       />
-
                       <Tooltip cursor={false} content={<CustomTooltip />} />
 
-                      {selectedGraphAvgNps?.includes("Promoters") && (
-                        <Bar
-                          barSize={20}
-                          name="Promoters"
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
                           dataKey="promoter"
-                          // fill="#00AC69"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
                           fill="url(#promoterGradient)"
-                          radius={[20, 20, 0, 0]}
                         />
                       )}
 
-                      {selectedGraphAvgNps?.includes("Passives") && (
-                        <Bar
-                          barSize={20}
-                          name="Passives"
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
                           dataKey="passive"
-                          // fill="#4D5552"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
                           fill="url(#passiveGradient)"
-                          radius={[20, 20, 0, 0]}
                         />
                       )}
-                      {selectedGraphAvgNps?.includes("Detractors") && (
-                        <Bar
-                          barSize={20}
-                          name="Detractors"
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
                           dataKey="detractor"
-                          // fill="#DB2B39"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
                           fill="url(#detractorGradient)"
-                          radius={[20, 20, 0, 0]}
                         />
                       )}
-                      {selectedGraphAvgNps?.includes("Overall") && (
-                        <Bar
-                          barSize={20}
-                          name="Overall"
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
                           dataKey="nps"
-                          // fill="#0094E0"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
                           fill="url(#npsGradient)"
-                          radius={[20, 20, 0, 0]}
                         />
                       )}
-                    </ComposedChart>
+                    </AreaChart>
                   </ResponsiveContainer>
                 </div>
               </div>
             </div>
 
-            {/* nps over time */}
-            <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
-              <div className="flex justify-between items-center gap-2">
-                <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
 
-                {/* legend */}
-                <div className="flex items-center gap-5 justify-end my-5">
-                  {pageData?.legends?.nps_over_time?.map((data, index) => {
-                    return (
-                      <div key={index}>
-                        <div className="flex items-center gap-1">
-                          <div
-                            style={{ backgroundColor: data?.color }}
-                            className=" h-[8px] w-[8px] rounded-full"
-                          ></div>
-                          <div className="text-[12px] opacity-80">
-                            {data?.name}
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
                           </div>
                         </div>
                       </div>
-                    );
-                  })}
+                    </div>
+                  </div>
                 </div>
 
-                {/* select , download and reset */}
-                <div className="flex gap-2 items-center ">
-                  <button title="Download">
-                    <DownloadRoundedIcon />
-                  </button>
-                  <div className="relative">
-                    <button
-                      onClick={() => {
-                        setSelectGraphStatus({
-                          nps_over_time: !selectGraphStatus?.nps_over_time,
-                        });
-                      }}
-                      className="flex items-center gap-2 border px-2 py-1 rounded-lg"
-                    >
-                      <span>Select graph</span>
-                      <span>
-                        <KeyboardArrowDownRoundedIcon />
-                      </span>
-                    </button>
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
 
-                    {selectGraphStatus?.nps_over_time && (
-                      <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
-                        {pageData?.legends?.nps_over_time?.map(
-                          (data, index) => {
-                            return (
-                              <div
-                                key={index}
-                                className="flex gap-2 items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
-                                onClick={() => {
-                                  if (
-                                    selectedGraphNPSOverTime?.includes(
-                                      data?.name
-                                    )
-                                  ) {
-                                    if (selectedGraphNPSOverTime?.length > 1) {
-                                      setSelectedGraphNPSOverTime(
-                                        (selectGraphStatus) =>
-                                          arrayRemove(
-                                            selectGraphStatus,
-                                            data?.name
-                                          )
-                                      );
-                                    }
-                                  } else {
-                                    setSelectedGraphNPSOverTime(() => [
-                                      ...selectedGraphNPSOverTime,
-                                      data?.name,
-                                    ]);
-                                  }
-                                }}
-                              >
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
                                 <div
-                                  style={{ backgroundColor: data?.color }}
-                                  className="w-[8px] aspect-square  rounded-full"
-                                ></div>
-                                <div>{data?.name}</div>
-                              </div>
-                            );
-                          }
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         )}
                       </div>
-                    )}
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
                   </div>
 
-                  <button className="scale-x-[-1]" title="Reset">
-                    <ReplayRoundedIcon />
-                  </button>
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
 
-              {/* Graph */}
-              <div className="relative mt-5">
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart
-                    key={selectedGraph}
-                    data={pageData?.graphs?.nps_over_time}
-                    margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
-                  >
-                    <CartesianGrid
-                      vertical={false}
-                      horizontal={false}
-                      opacity={0.5}
-                    />
-                    <XAxis
-                      dataKey="month"
-                      fontSize={12}
-                      axisLine={false}
-                      tickLine={false}
-                      tickCount={6}
-                      angle={0}
-                      textAnchor="middle"
-                    />
-                    <YAxis
-                      axisLine={false}
-                      tickLine={false}
-                      fontSize={12}
-                      tickCount={4}
-                      tickFormatter={(number) => `${number}`}
-                      margin={{ right: 20 }}
-                    />
-                    <Tooltip cursor={false} content={<CustomTooltip />} />
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
 
-                    {selectedGraphNPSOverTime?.includes("Promoters") && (
-                      <Area
-                        type="monotone"
-                        name="promoter"
-                        dataKey="promoter"
-                        stroke="#00AC69 "
-                        dot={false}
-                        strokeWidth={4}
-                        fill="url(#promoterGradient)"
-                      />
-                    )}
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
 
-                    {selectedGraphNPSOverTime?.includes("Passives") && (
-                      <Area
-                        type="monotone"
-                        name="passive"
-                        dataKey="passive"
-                        stroke="#4D5552 "
-                        dot={false}
-                        strokeWidth={4}
-                        fill="url(#passiveGradient)"
-                      />
-                    )}
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
 
-                    {selectedGraphNPSOverTime?.includes("Detractors") && (
-                      <Area
-                        type="monotone"
-                        name="detractor"
-                        dataKey="detractor"
-                        stroke="#DB2B39 "
-                        dot={false}
-                        strokeWidth={4}
-                        fill="url(#detractorGradient)"
-                      />
-                    )}
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
 
-                    {selectedGraphNPSOverTime?.includes("NPS") && (
-                      <Area
-                        type="monotone"
-                        name="NPS"
-                        dataKey="nps"
-                        stroke="#0094E0 "
-                        dot={false}
-                        strokeWidth={4}
-                        fill="url(#npsGradient)"
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
                       />
-                    )}
-                  </AreaChart>
-                </ResponsiveContainer>
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
+
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
+
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
+
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
+
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
+
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
+
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
+
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
+
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
+
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
+
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
+
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
+
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* graphs */}
+            <div className=" mt-5 text-gray-900">
+              <div className="flex items-center gap-5">
+                {/* nps summary */}
+                <div
+                  ref={npsSummary}
+                  className="border bg-white rounded-lg p-5 flex-1"
+                >
+                  <div className="flex justify-between items-center">
+                    <h1 className="text-xl font-semibold ">
+                      Net Promoter Score{" "}
+                    </h1>
+
+                    <button
+                      onClick={() => exportComponentAsPNG(npsSummary)}
+                      title="Download"
+                      className="text-gray-600"
+                    >
+                      <DownloadRoundedIcon />
+                    </button>
+                  </div>
+
+                  <div className="mt-8">
+                    <div className="flex gap-5 items-center">
+                      {/* pie */}
+                      <div className="flex-[0.3] relative">
+                        {/* Pie graph */}
+                        <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
+                          <div className="flex flex-col justify-center items-center">
+                            <h1 className="text-[18px] opacity-80">NPS</h1>
+                            <p className="opacity-80 text-[24px] font-semibold">
+                              {pageData?.graphs?.nps_pie_bar?.nps_score}%
+                            </p>
+                          </div>
+                        </div>
+                        <ResponsiveContainer
+                          height={250}
+                          width="100%"
+                          className=""
+                        >
+                          <PieChart
+                            height={220}
+                            width={250}
+                            key={pageData?.graphs?.nps_pie_bar}
+                          >
+                            <Tooltip
+                              cursor={false}
+                              content={<CustomTooltip />}
+                            />
+
+                            <Pie
+                              data={pageData?.graphs?.nps_pie}
+                              dataKey="percentage"
+                              nameKey="label"
+                              cx="50%"
+                              cy="50%"
+                              strokeWidth={5}
+                              innerRadius="60%"
+                              outerRadius="100%"
+                              cornerRadius={6}
+                              paddingAngle={-1}
+                              startAngle={-270}
+                              endAngle={-630}
+                              minAngle={15}
+                              fill="#1e1e1e1e"
+                            >
+                              {pageData?.graphs?.nps_pie?.map(
+                                (entry, index) => (
+                                  <Cell key={index} fill={entry?.color} />
+                                )
+                              )}
+                            </Pie>
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+
+                      {/* pie bar */}
+                      <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
+                        {/* promoter */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Promoters</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_promoters}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#00AC69] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.promoters +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* passive */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Passives</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.passive +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {pageData?.graphs?.nps_pie_bar?.total_passive}
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#4D5552] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.passive + "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+
+                        {/* detractors */}
+                        <div>
+                          {/* head  */}
+                          <div className="flex justify-between items-center">
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>Detractors</h3>
+                              <h4>
+                                {"(" +
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%)"}
+                              </h4>
+                            </div>
+
+                            <div className="text-gray-400 flex gap-2 ">
+                              <h3>
+                                {
+                                  pageData?.graphs?.nps_pie_bar
+                                    ?.total_detractors
+                                }
+                              </h3>
+
+                              <h4>
+                                <GroupsRoundedIcon />
+                              </h4>
+                            </div>
+                          </div>
+                          {/* bar */}
+                          <div className="bg-white rounded-xl border">
+                            <div
+                              className="bg-[#DB2B39] h-[25px] rounded-xl"
+                              style={{
+                                width:
+                                  pageData?.graphs?.nps_pie_bar?.detractors +
+                                  "%",
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* average nps */}
+                <div className="border bg-white rounded-lg p-5  flex-1 ">
+                  <div className="flex justify-between items-center gap-5 ">
+                    <h1 className="text-xl font-semibold">Average NPS</h1>
+
+                    {/* select , download and reset */}
+                    <div className="flex gap-2 items-center text-gray-700">
+                      <button title="Download" onClick={createPDF}>
+                        <DownloadRoundedIcon />
+                      </button>
+                      <div className="relative">
+                        <button
+                          onClick={() => {
+                            setSelectGraphStatus({
+                              avg_nps: !selectGraphStatus?.avg_nps,
+                            });
+                          }}
+                          className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                        >
+                          <span>Select graph</span>
+                          <span>
+                            <KeyboardArrowDownRoundedIcon />
+                          </span>
+                        </button>
+
+                        {selectGraphStatus?.avg_nps && (
+                          <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                            {pageData?.legends?.avg_nps?.map((data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphAvgNps?.includes(data?.name)
+                                    ) {
+                                      if (selectedGraphAvgNps?.length > 1) {
+                                        setSelectedGraphAvgNps(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphAvgNps(() => [
+                                        ...selectedGraphAvgNps,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphAvgNps?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+
+                      <button className="scale-x-[-1]" title="Reset">
+                        <ReplayRoundedIcon />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.avg_nps?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Graph */}
+                  <div className="relative mt-5">
+                    <ResponsiveContainer width="100%" height={220} className="">
+                      <ComposedChart
+                        data={pageData?.graphs?.avg_nps}
+                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                      >
+                        <defs>
+                          <linearGradient
+                            id="npsGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#009DFF"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#009DFF"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="promoterGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#00AC69"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#00AC69"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="passiveGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#4D5552"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#4D5552"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+
+                          <linearGradient
+                            id="detractorGradient"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="5%"
+                              stopColor="#DB2B39"
+                              stopOpacity={1}
+                            />
+                            <stop
+                              offset="95%"
+                              stopColor="#DB2B39"
+                              stopOpacity={0.7}
+                            />
+                          </linearGradient>
+                        </defs>
+
+                        <CartesianGrid
+                          vertical={false}
+                          horizontal={false}
+                          opacity={0.5}
+                        />
+
+                        <XAxis
+                          dataKey="month"
+                          fontSize={12}
+                          axisLine={false}
+                          tickLine={false}
+                          tickCount={10}
+                          angle={0}
+                          textAnchor="middle"
+                        />
+                        <YAxis
+                          type="number"
+                          // domain={["dataMin - 0.005", "dataMax + 0.0005"]}
+                          axisLine={false}
+                          tickLine={false}
+                          fontSize={10}
+                          tickFormatter={(number) => `${number.toFixed(2)}`}
+                          margin={{ right: 20 }}
+                        />
+
+                        <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                        {selectedGraphAvgNps?.includes("Promoters") && (
+                          <Bar
+                            barSize={20}
+                            name="Promoters"
+                            dataKey="promoter"
+                            // fill="#00AC69"
+                            fill="url(#promoterGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+
+                        {selectedGraphAvgNps?.includes("Passives") && (
+                          <Bar
+                            barSize={20}
+                            name="Passives"
+                            dataKey="passive"
+                            // fill="#4D5552"
+                            fill="url(#passiveGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Detractors") && (
+                          <Bar
+                            barSize={20}
+                            name="Detractors"
+                            dataKey="detractor"
+                            // fill="#DB2B39"
+                            fill="url(#detractorGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                        {selectedGraphAvgNps?.includes("Overall") && (
+                          <Bar
+                            barSize={20}
+                            name="Overall"
+                            dataKey="nps"
+                            // fill="#0094E0"
+                            fill="url(#npsGradient)"
+                            radius={[20, 20, 0, 0]}
+                          />
+                        )}
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              {/* nps over time */}
+              <div className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]">
+                <div className="flex justify-between items-center gap-2">
+                  <h1 className="text-xl font-semibold "> NPS Over Time</h1>
+
+                  {/* legend */}
+                  <div className="flex items-center gap-5 justify-end my-5">
+                    {pageData?.legends?.nps_over_time?.map((data, index) => {
+                      return (
+                        <div key={index}>
+                          <div className="flex items-center gap-1">
+                            <div
+                              style={{ backgroundColor: data?.color }}
+                              className=" h-[8px] w-[8px] rounded-full"
+                            ></div>
+                            <div className="text-[12px] opacity-80">
+                              {data?.name}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* select , download and reset */}
+                  <div className="flex gap-2 items-center ">
+                    <button title="Download">
+                      <DownloadRoundedIcon />
+                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => {
+                          setSelectGraphStatus({
+                            nps_over_time: !selectGraphStatus?.nps_over_time,
+                          });
+                        }}
+                        className="flex items-center gap-2 border px-2 py-1 rounded-lg"
+                      >
+                        <span>Select graph</span>
+                        <span>
+                          <KeyboardArrowDownRoundedIcon />
+                        </span>
+                      </button>
+
+                      {selectGraphStatus?.nps_over_time && (
+                        <div className="absolute top-[110%] border  z-50 bg-white shadow-xl rounded-b-lg left-0 right-0">
+                          {pageData?.legends?.nps_over_time?.map(
+                            (data, index) => {
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
+                                  onClick={() => {
+                                    if (
+                                      selectedGraphNPSOverTime?.includes(
+                                        data?.name
+                                      )
+                                    ) {
+                                      if (
+                                        selectedGraphNPSOverTime?.length > 1
+                                      ) {
+                                        setSelectedGraphNPSOverTime(
+                                          (selectGraphStatus) =>
+                                            arrayRemove(
+                                              selectGraphStatus,
+                                              data?.name
+                                            )
+                                        );
+                                      }
+                                    } else {
+                                      setSelectedGraphNPSOverTime(() => [
+                                        ...selectedGraphNPSOverTime,
+                                        data?.name,
+                                      ]);
+                                    }
+                                  }}
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      style={{ backgroundColor: data?.color }}
+                                      className="w-[8px] aspect-square  rounded-full"
+                                    ></div>
+                                    <div>{data?.name}</div>
+                                  </div>
+
+                                  <div>
+                                    {selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    ) && (
+                                      <CheckCircleRoundedIcon
+                                        fontSize="small"
+                                        className="text-gray-600"
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    <button className="scale-x-[-1]" title="Reset">
+                      <ReplayRoundedIcon />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Graph */}
+                <div className="relative mt-5">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart
+                      key={selectedGraph}
+                      data={pageData?.graphs?.nps_over_time}
+                      margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                    >
+                      <CartesianGrid
+                        vertical={false}
+                        horizontal={false}
+                        opacity={0.5}
+                      />
+                      <XAxis
+                        dataKey="month"
+                        fontSize={12}
+                        axisLine={false}
+                        tickLine={false}
+                        tickCount={6}
+                        angle={0}
+                        textAnchor="middle"
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        fontSize={12}
+                        tickCount={4}
+                        tickFormatter={(number) => `${number}`}
+                        margin={{ right: 20 }}
+                      />
+                      <Tooltip cursor={false} content={<CustomTooltip />} />
+
+                      {selectedGraphNPSOverTime?.includes("Promoters") && (
+                        <Area
+                          type="monotone"
+                          name="promoter"
+                          dataKey="promoter"
+                          stroke="#00AC69 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#promoterGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Passives") && (
+                        <Area
+                          type="monotone"
+                          name="passive"
+                          dataKey="passive"
+                          stroke="#4D5552 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#passiveGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("Detractors") && (
+                        <Area
+                          type="monotone"
+                          name="detractor"
+                          dataKey="detractor"
+                          stroke="#DB2B39 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#detractorGradient)"
+                        />
+                      )}
+
+                      {selectedGraphNPSOverTime?.includes("NPS") && (
+                        <Area
+                          type="monotone"
+                          name="NPS"
+                          dataKey="nps"
+                          stroke="#0094E0 "
+                          dot={false}
+                          strokeWidth={4}
+                          fill="url(#npsGradient)"
+                        />
+                      )}
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
           </div>
