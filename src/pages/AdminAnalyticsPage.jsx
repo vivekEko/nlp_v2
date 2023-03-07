@@ -39,12 +39,7 @@ const AdminAnalyticsPage = () => {
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
   const [calendarStatus, setCalendarStatus] = useState(false);
-  const [activeGraph, setActiveGraph] = useState({
-    nps: true,
-    promoters: false,
-    passives: false,
-    detractors: false,
-  });
+
   const [selectGraphStatus, setSelectGraphStatus] = useState({
     avg_nps: false,
     nps_over_time: false,
@@ -78,7 +73,6 @@ const AdminAnalyticsPage = () => {
       },
     ],
   };
-
   const pageData2 = {
     cards: [
       {
@@ -114,16 +108,16 @@ const AdminAnalyticsPage = () => {
     ],
     legends: {
       avg_nps: [
-        { name: "Promoters", color: "#00AC69", status: false },
+        { name: "Promoters", color: "#00AC69", status: true },
         { name: "Passives", color: "#4D5552", status: false },
-        { name: "Detractors", color: "#DB2B39", status: true },
-        { name: "Overall", color: "#0094E0", status: true },
+        { name: "Detractors", color: "#DB2B39", status: false },
+        { name: "Overall", color: "#0094E0", status: false },
       ],
 
       nps_over_time: [
         { name: "Promoters", color: "#00AC69", status: false },
         { name: "Passives", color: "#4D5552", status: false },
-        { name: "Detractors", color: "#DB2B39", status: true },
+        { name: "Detractors", color: "#DB2B39", status: false },
         { name: "NPS", color: "#0094E0", status: true },
       ],
     },
@@ -369,8 +363,20 @@ const AdminAnalyticsPage = () => {
     },
   };
   const [pageData, setPageData] = useState({});
+  const [selectedGraph, setSelectedGraph] = useState("NPS");
+  const [selectedGraphNPSOverTime, setSelectedGraphNPSOverTime] = useState([
+    "NPS",
+  ]);
+  const [selectedGraphAvgNps, setSelectedGraphAvgNps] = useState(["Overall"]);
 
   // functions
+  // Using filter method to create a remove method
+  function arrayRemove(arr, value) {
+    return arr.filter(function (geeks) {
+      return geeks != value;
+    });
+  }
+
   function handleSelect(ranges) {
     setStartDate(ranges?.selection?.startDate);
     setEndDate(ranges?.selection?.endDate);
@@ -381,16 +387,9 @@ const AdminAnalyticsPage = () => {
     setPageData(pageData2);
   }, []);
 
-  const createPDF = async () => {
-    const pdf = new jsPDF("landscape", "pt", "a4");
-    const data = await html2canvas(document.querySelector("#nps_summary"));
-    const img = data.toDataURL("image/png");
-    const imgProperties = pdf.getImageProperties(img);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProperties.height * pdfWidth) / imgProperties.width;
-    pdf.addImage(img, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save("shipping_label.pdf");
-  };
+  useEffect(() => {
+    console.log("selectedGraphNPSOverTime", selectedGraphNPSOverTime);
+  }, [selectedGraphNPSOverTime]);
 
   const npsSummary = useRef();
 
@@ -432,7 +431,7 @@ const AdminAnalyticsPage = () => {
       </header>
 
       <div className="bg-gray-50 ">
-        <div className="w-[80%] h-full mx-auto py-5 pt-0">
+        <div className="w-[80%] h-full mx-auto py-5 pt-5">
           {/* filter */}
           {/* <div>
             <div className="relative">
@@ -462,7 +461,7 @@ const AdminAnalyticsPage = () => {
           </div> */}
 
           {/* cards */}
-          <div className="bg-white rounded-lg border mt-5 flex justify-between items-center divide-x text-gray-900">
+          <div className="bg-white rounded-lg border  flex justify-between items-center divide-x text-gray-900">
             {pageData?.cards?.map((data, index) => {
               return (
                 <div className="w-full flex flex-col justify-center items-center p-5 gap-2">
@@ -486,10 +485,6 @@ const AdminAnalyticsPage = () => {
                     Net Promoter Score{" "}
                   </h1>
 
-                  {/* <button onClick={() => {
-                    exportComponentAsPDF(npsSummary)
-                    }}> */}
-
                   <button
                     onClick={() => exportComponentAsPNG(npsSummary)}
                     title="Download"
@@ -507,8 +502,8 @@ const AdminAnalyticsPage = () => {
                       <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
                         <div className="flex flex-col justify-center items-center">
                           <h1 className="text-[18px] opacity-80">NPS</h1>
-                          <p className="opacity-80 text-[24px] font-semibold  ">
-                            {pageData?.graphs?.nps_pie_bar?.nps_score}
+                          <p className="opacity-80 text-[24px] font-semibold">
+                            {pageData?.graphs?.nps_pie_bar?.nps_score}%
                           </p>
                         </div>
                       </div>
@@ -692,22 +687,24 @@ const AdminAnalyticsPage = () => {
                                 key={index}
                                 className="flex gap-2 items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
                                 onClick={() => {
-                                  setPageData({
-                                    ...pageData,
-                                    legends: {
-                                      // ...pageData?.legends,
-                                      avg_nps: pageData?.legends?.avg_nps?.map(
-                                        (a_data, a_index) => {
-                                          if (a_index === index) {
-                                            return {
-                                              ...a_data,
-                                              status: !a_data?.status,
-                                            };
-                                          } else return a_data;
-                                        }
-                                      ),
-                                    },
-                                  });
+                                  if (
+                                    selectedGraphAvgNps?.includes(data?.name)
+                                  ) {
+                                    if (selectedGraphAvgNps?.length > 1) {
+                                      setSelectedGraphAvgNps(
+                                        (selectGraphStatus) =>
+                                          arrayRemove(
+                                            selectGraphStatus,
+                                            data?.name
+                                          )
+                                      );
+                                    }
+                                  } else {
+                                    setSelectedGraphAvgNps(() => [
+                                      ...selectedGraphAvgNps,
+                                      data?.name,
+                                    ]);
+                                  }
                                 }}
                               >
                                 <div
@@ -859,7 +856,7 @@ const AdminAnalyticsPage = () => {
 
                       <Tooltip cursor={false} content={<CustomTooltip />} />
 
-                      {pageData?.legends?.avg_nps[0]?.status && (
+                      {selectedGraphAvgNps?.includes("Promoters") && (
                         <Bar
                           barSize={20}
                           name="Promoters"
@@ -870,7 +867,7 @@ const AdminAnalyticsPage = () => {
                         />
                       )}
 
-                      {pageData?.legends?.avg_nps[1]?.status && (
+                      {selectedGraphAvgNps?.includes("Passives") && (
                         <Bar
                           barSize={20}
                           name="Passives"
@@ -880,7 +877,7 @@ const AdminAnalyticsPage = () => {
                           radius={[20, 20, 0, 0]}
                         />
                       )}
-                      {pageData?.legends?.avg_nps[2]?.status && (
+                      {selectedGraphAvgNps?.includes("Detractors") && (
                         <Bar
                           barSize={20}
                           name="Detractors"
@@ -890,7 +887,7 @@ const AdminAnalyticsPage = () => {
                           radius={[20, 20, 0, 0]}
                         />
                       )}
-                      {pageData?.legends?.avg_nps[3]?.status && (
+                      {selectedGraphAvgNps?.includes("Overall") && (
                         <Bar
                           barSize={20}
                           name="Overall"
@@ -959,23 +956,26 @@ const AdminAnalyticsPage = () => {
                                 key={index}
                                 className="flex gap-2 items-center p-2  text-sm hover:bg-gray-100 transition-all cursor-pointer"
                                 onClick={() => {
-                                  setPageData({
-                                    ...pageData,
-                                    legends: {
-                                      // ...pageData?.legends,
-                                      nps_over_time:
-                                        pageData?.legends?.nps_over_time?.map(
-                                          (a_data, a_index) => {
-                                            if (a_index === index) {
-                                              return {
-                                                ...a_data,
-                                                status: !a_data?.status,
-                                              };
-                                            } else return a_data;
-                                          }
-                                        ),
-                                    },
-                                  });
+                                  if (
+                                    selectedGraphNPSOverTime?.includes(
+                                      data?.name
+                                    )
+                                  ) {
+                                    if (selectedGraphNPSOverTime?.length > 1) {
+                                      setSelectedGraphNPSOverTime(
+                                        (selectGraphStatus) =>
+                                          arrayRemove(
+                                            selectGraphStatus,
+                                            data?.name
+                                          )
+                                      );
+                                    }
+                                  } else {
+                                    setSelectedGraphNPSOverTime(() => [
+                                      ...selectedGraphNPSOverTime,
+                                      data?.name,
+                                    ]);
+                                  }
                                 }}
                               >
                                 <div
@@ -1001,87 +1001,10 @@ const AdminAnalyticsPage = () => {
               <div className="relative mt-5">
                 <ResponsiveContainer width="100%" height={300}>
                   <AreaChart
-                    key={new Date()}
+                    key={selectedGraph}
                     data={pageData?.graphs?.nps_over_time}
                     margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
                   >
-                    {/* <defs>
-                      <linearGradient
-                        id="npsGradient"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="5%"
-                          stopColor="#009DFF"
-                          stopOpacity={0.8}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="#009DFF"
-                          stopOpacity={0.05}
-                        />
-                      </linearGradient>
-
-                      <linearGradient
-                        id="promoterGradient"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="5%"
-                          stopColor="#00AC69"
-                          stopOpacity={0.8}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="#00AC69"
-                          stopOpacity={0.05}
-                        />
-                      </linearGradient>
-
-                      <linearGradient
-                        id="passiveGradient"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="5%"
-                          stopColor="#4D5552"
-                          stopOpacity={0.8}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="#4D5552"
-                          stopOpacity={0.05}
-                        />
-                      </linearGradient>
-
-                      <linearGradient
-                        id="detractorGradient"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-                        <stop
-                          offset="5%"
-                          stopColor="#DB2B39"
-                          stopOpacity={0.8}
-                        />
-                        <stop
-                          offset="95%"
-                          stopColor="#DB2B39"
-                          stopOpacity={0.05}
-                        />
-                      </linearGradient>
-                    </defs> */}
                     <CartesianGrid
                       vertical={false}
                       horizontal={false}
@@ -1106,7 +1029,7 @@ const AdminAnalyticsPage = () => {
                     />
                     <Tooltip cursor={false} content={<CustomTooltip />} />
 
-                    {pageData?.legends?.avg_nps[0]?.status && (
+                    {selectedGraphNPSOverTime?.includes("Promoters") && (
                       <Area
                         type="monotone"
                         name="promoter"
@@ -1118,7 +1041,7 @@ const AdminAnalyticsPage = () => {
                       />
                     )}
 
-                    {pageData?.legends?.avg_nps[1]?.status && (
+                    {selectedGraphNPSOverTime?.includes("Passives") && (
                       <Area
                         type="monotone"
                         name="passive"
@@ -1130,7 +1053,7 @@ const AdminAnalyticsPage = () => {
                       />
                     )}
 
-                    {pageData?.legends?.avg_nps[2]?.status && (
+                    {selectedGraphNPSOverTime?.includes("Detractors") && (
                       <Area
                         type="monotone"
                         name="detractor"
@@ -1142,11 +1065,11 @@ const AdminAnalyticsPage = () => {
                       />
                     )}
 
-                    {pageData?.legends?.avg_nps[3]?.status && (
+                    {selectedGraphNPSOverTime?.includes("NPS") && (
                       <Area
                         type="monotone"
                         name="NPS"
-                        dataKey="NPS"
+                        dataKey="nps"
                         stroke="#0094E0 "
                         dot={false}
                         strokeWidth={4}
@@ -1166,81 +1089,7 @@ const AdminAnalyticsPage = () => {
 
 export default AdminAnalyticsPage;
 
-const renderActiveShape = (props) => {
-  const RADIAN = Math.PI / 180;
-  const {
-    cx,
-    cy,
-    midAngle,
-    innerRadius,
-    outerRadius,
-    startAngle,
-    endAngle,
-    fill,
-    payload,
-    percent,
-    value,
-  } = props;
-  const sin = Math.sin(-RADIAN * midAngle);
-  const cos = Math.cos(-RADIAN * midAngle);
-  const sx = cx + (outerRadius + 10) * cos;
-  const sy = cy + (outerRadius + 10) * sin;
-  const mx = cx + (outerRadius + 30) * cos;
-  const my = cy + (outerRadius + 30) * sin;
-  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
-  const ey = my;
-  const textAnchor = cos >= 0 ? "start" : "end";
-
-  return (
-    <g>
-      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill}>
-        {payload.name}
-      </text>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-      />
-      <Sector
-        cx={cx}
-        cy={cy}
-        startAngle={startAngle}
-        endAngle={endAngle}
-        innerRadius={outerRadius + 6}
-        outerRadius={outerRadius + 10}
-        fill={fill}
-      />
-      <path
-        d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
-        stroke={fill}
-        fill="none"
-      />
-      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-      <text
-        x={ex + (cos >= 0 ? 1 : -1) * 12}
-        y={ey}
-        textAnchor={textAnchor}
-        fill="#333"
-      >{`PV ${value}`}</text>
-      <text
-        x={ex + (cos >= 0 ? 1 : -1) * 12}
-        y={ey}
-        dy={18}
-        textAnchor={textAnchor}
-        fill="#999"
-      >
-        {`(Rate ${(percent * 100).toFixed(2)}%)`}
-      </text>
-    </g>
-  );
-};
-
 function CustomTooltip({ active, payload, label }) {
-  console.log("payload", payload);
   if (active) {
     return (
       <div className="rounded-md bg-[#fafafa] text-[#1a1a1a] p-[1rem] shadow-2xl shadow-[#000000] ">
