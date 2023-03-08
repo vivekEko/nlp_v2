@@ -39,6 +39,7 @@ const AdminAnalyticsPage = () => {
   const [selectGraphStatus, setSelectGraphStatus] = useState({
     avg_nps: false,
     nps_over_time: false,
+    nss_over_time: false,
   });
   const header_data = {
     survey_name: "Survey Name",
@@ -391,18 +392,12 @@ const AdminAnalyticsPage = () => {
         },
       ],
       legends: {
-        avg_nps: [
-          { name: "Positive", color: "#00AC69", status: true },
-          { name: "Neutral", color: "#4D5552", status: false },
-          { name: "Negative", color: "#DB2B39", status: false },
-          { name: "Sentiment Score", color: "#0094E0", status: false },
-        ],
-
-        nps_over_time: [
+        nss_over_time: [
           { name: "Positive", color: "#00AC69", status: false },
           { name: "Neutral", color: "#4D5552", status: false },
-          { name: "Negative", color: "#DB2B39", status: false },
-          { name: "Sentiment Score", color: "#0094E0", status: true },
+          { name: "Negative", color: "#EE6123", status: false },
+          { name: "Extreme", color: "#DB2B39", status: false },
+          { name: "Sentiment", color: "#0094E0", status: true },
         ],
       },
       graphs: {
@@ -420,22 +415,22 @@ const AdminAnalyticsPage = () => {
         sentiment_pie: [
           {
             label: "Positive",
-            percentage: 72,
+            percentage: 60,
             color: "url(#promoterGradient)",
           },
           {
             label: "Neutral",
-            percentage: 19,
+            percentage: 10,
             color: "url(#passiveGradient)",
           },
           {
             label: "Negative",
-            percentage: 8,
-            color: "url(#detractorGradient)",
+            percentage: 25,
+            color: "url(#negativeGradient)",
           },
           {
             label: "Extreme",
-            percentage: 2,
+            percentage: 5,
             color: "url(#detractorGradient)",
           },
         ],
@@ -444,7 +439,7 @@ const AdminAnalyticsPage = () => {
           {
             month: "Jun",
             year: "2014",
-            nps: 45,
+            nss: 45,
             positive: 59,
             neutral: 27,
             negative: 14,
@@ -453,7 +448,7 @@ const AdminAnalyticsPage = () => {
           {
             month: "Jul",
             year: "2014",
-            nps: 13,
+            nss: 13,
             positive: 46,
             neutral: 21,
             negative: 33,
@@ -462,7 +457,7 @@ const AdminAnalyticsPage = () => {
           {
             month: "Aug",
             year: "2014",
-            nps: 10,
+            nss: 10,
             positive: 41,
             neutral: 28,
             negative: 31,
@@ -471,7 +466,7 @@ const AdminAnalyticsPage = () => {
           {
             month: "Sep",
             year: "2014",
-            nps: 48,
+            nss: 48,
             positive: 64,
             neutral: 20,
             negative: 16,
@@ -480,7 +475,7 @@ const AdminAnalyticsPage = () => {
           {
             month: "Oct",
             year: "2014",
-            nps: 39,
+            nss: 39,
             positive: 56,
             neutral: 27,
             negative: 17,
@@ -489,7 +484,7 @@ const AdminAnalyticsPage = () => {
           {
             month: "Nov",
             year: "2014",
-            nps: 51,
+            nss: 51,
             positive: 60,
             neutral: 32,
             negative: 9,
@@ -498,7 +493,7 @@ const AdminAnalyticsPage = () => {
           {
             month: "Dec",
             year: "2014",
-            nps: 51,
+            nss: 51,
             positive: 62,
             neutral: 27,
             negative: 11,
@@ -507,7 +502,7 @@ const AdminAnalyticsPage = () => {
           {
             month: "Jan",
             year: "2015",
-            nps: 27,
+            nss: 27,
             positive: 32,
             neutral: 9,
             negative: 5,
@@ -516,7 +511,7 @@ const AdminAnalyticsPage = () => {
           {
             month: "Feb",
             year: "2015",
-            nps: 30,
+            nss: 30,
             positive: 30,
             neutral: 4,
             negative: 0,
@@ -525,7 +520,7 @@ const AdminAnalyticsPage = () => {
           {
             month: "Mar",
             year: "2015",
-            nps: 28,
+            nss: 28,
             positive: 35,
             neutral: 14,
             negative: 7,
@@ -534,7 +529,7 @@ const AdminAnalyticsPage = () => {
           {
             month: "Apr",
             year: "2015",
-            nps: 48,
+            nss: 48,
             positive: 51,
             neutral: 9,
             negative: 3,
@@ -543,7 +538,7 @@ const AdminAnalyticsPage = () => {
           {
             month: "May",
             year: "2015",
-            nps: 32,
+            nss: 32,
             positive: 33,
             neutral: 12,
             negative: 1,
@@ -552,7 +547,7 @@ const AdminAnalyticsPage = () => {
           {
             month: "Jun",
             year: "2015",
-            nps: 30,
+            nss: 30,
             positive: 37,
             neutral: 11,
             negative: 7,
@@ -567,9 +562,18 @@ const AdminAnalyticsPage = () => {
   const [calendarStatus, setCalendarStatus] = useState(false);
   const [pageData, setPageData] = useState({});
   const [selectedGraph, setSelectedGraph] = useState("NPS");
-  const [selectedGraphAvgNps, setSelectedGraphAvgNps] = useState(["Overall"]);
+  const [selectedGraphAvgNps, setSelectedGraphAvgNps] = useState([
+    "Overall",
+    "Passives",
+  ]);
   const [selectedGraphNPSOverTime, setSelectedGraphNPSOverTime] = useState([
-    "NPS",
+    "Passives",
+    "Promoters",
+  ]);
+
+  const [selectedGraphNSSOverTime, setSelectedGraphNSSOverTime] = useState([
+    "Neutral",
+    "Positive",
   ]);
 
   const selectionRange = {
@@ -582,6 +586,9 @@ const AdminAnalyticsPage = () => {
   const npsSummary = useRef();
   const avgNps = useRef();
   const npsOverTime = useRef();
+
+  const nssSummary = useRef();
+  const nssOverTime = useRef();
 
   // functions
 
@@ -788,6 +795,102 @@ const AdminAnalyticsPage = () => {
                               width={250}
                               key={pageData?.nps?.graphs?.nps_pie_bar}
                             >
+                              <defs>
+                                <linearGradient
+                                  id="npsGradient"
+                                  x1="0"
+                                  y1="0"
+                                  x2="0"
+                                  y2="1"
+                                >
+                                  <stop
+                                    offset="5%"
+                                    stopColor="#009DFF"
+                                    stopOpacity={1}
+                                  />
+                                  <stop
+                                    offset="95%"
+                                    stopColor="#009DFF"
+                                    stopOpacity={0.7}
+                                  />
+                                </linearGradient>
+
+                                <linearGradient
+                                  id="promoterGradient"
+                                  x1="0"
+                                  y1="0"
+                                  x2="0"
+                                  y2="1"
+                                >
+                                  <stop
+                                    offset="5%"
+                                    stopColor="#00AC69"
+                                    stopOpacity={1}
+                                  />
+                                  <stop
+                                    offset="95%"
+                                    stopColor="#00AC69"
+                                    stopOpacity={0.7}
+                                  />
+                                </linearGradient>
+
+                                <linearGradient
+                                  id="passiveGradient"
+                                  x1="0"
+                                  y1="0"
+                                  x2="0"
+                                  y2="1"
+                                >
+                                  <stop
+                                    offset="5%"
+                                    stopColor="#4D5552"
+                                    stopOpacity={1}
+                                  />
+                                  <stop
+                                    offset="95%"
+                                    stopColor="#4D5552"
+                                    stopOpacity={0.7}
+                                  />
+                                </linearGradient>
+
+                                <linearGradient
+                                  id="detractorGradient"
+                                  x1="0"
+                                  y1="0"
+                                  x2="0"
+                                  y2="1"
+                                >
+                                  <stop
+                                    offset="5%"
+                                    stopColor="#DB2B39"
+                                    stopOpacity={1}
+                                  />
+                                  <stop
+                                    offset="95%"
+                                    stopColor="#DB2B39"
+                                    stopOpacity={0.7}
+                                  />
+                                </linearGradient>
+
+                                <linearGradient
+                                  id="negativeGradient"
+                                  x1="0"
+                                  y1="0"
+                                  x2="0"
+                                  y2="1"
+                                >
+                                  <stop
+                                    offset="5%"
+                                    stopColor="#EE6123"
+                                    stopOpacity={1}
+                                  />
+                                  <stop
+                                    offset="95%"
+                                    stopColor="#EE6123"
+                                    stopOpacity={0.7}
+                                  />
+                                </linearGradient>
+                              </defs>
                               <Tooltip
                                 cursor={false}
                                 content={<CustomTooltip />}
@@ -1051,7 +1154,10 @@ const AdminAnalyticsPage = () => {
                                 </button>
                                 <button
                                   onClick={() => {
-                                    setSelectedGraphAvgNps(["Overall"]);
+                                    setSelectedGraphAvgNps([
+                                      "Overall",
+                                      "Passives",
+                                    ]);
                                   }}
                                   className="hover:underline hover:text-red-500 p-2"
                                 >
@@ -1109,84 +1215,6 @@ const AdminAnalyticsPage = () => {
                           data={pageData?.nps?.graphs?.avg_nps}
                           margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
                         >
-                          <defs>
-                            <linearGradient
-                              id="npsGradient"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="#009DFF"
-                                stopOpacity={1}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="#009DFF"
-                                stopOpacity={0.7}
-                              />
-                            </linearGradient>
-
-                            <linearGradient
-                              id="promoterGradient"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="#00AC69"
-                                stopOpacity={1}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="#00AC69"
-                                stopOpacity={0.7}
-                              />
-                            </linearGradient>
-
-                            <linearGradient
-                              id="passiveGradient"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="#4D5552"
-                                stopOpacity={1}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="#4D5552"
-                                stopOpacity={0.7}
-                              />
-                            </linearGradient>
-
-                            <linearGradient
-                              id="detractorGradient"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="#DB2B39"
-                                stopOpacity={1}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="#DB2B39"
-                                stopOpacity={0.7}
-                              />
-                            </linearGradient>
-                          </defs>
-
                           <CartesianGrid
                             vertical={false}
                             horizontal={false}
@@ -1387,7 +1415,10 @@ const AdminAnalyticsPage = () => {
                               </button>
                               <button
                                 onClick={() => {
-                                  setSelectedGraphNPSOverTime(["NPS"]);
+                                  setSelectedGraphNPSOverTime([
+                                    "Passives",
+                                    "Promoters",
+                                  ]);
                                 }}
                                 className="hover:underline hover:text-red-500 p-2"
                               >
@@ -1541,7 +1572,7 @@ const AdminAnalyticsPage = () => {
             <div className="mt-5 p-5 border border-t-transparent rounded-b-lg ">
               {/* cards */}
               <div className="bg-white rounded-lg border grid grid-cols-3  md:grid-cols-6 divide-y md:divide-y-0 divide-x text-gray-900">
-                {pageData?.nps?.cards?.map((data, index) => {
+                {pageData?.sentiment?.cards?.map((data, index) => {
                   return (
                     <div
                       key={index}
@@ -1557,18 +1588,16 @@ const AdminAnalyticsPage = () => {
               {/* graphs */}
               <div className=" mt-5 text-gray-900">
                 <div className="flex flex-col lg:flex-row items-center gap-5">
-                  {/* nps summary */}
+                  {/* nss summary */}
                   <div
-                    ref={npsSummary}
+                    ref={nssSummary}
                     className="border bg-white rounded-lg p-5 flex-1 w-full"
                   >
                     <div className="flex justify-between items-center">
-                      <h1 className="text-xl font-semibold ">
-                        Net Promoter Score{" "}
-                      </h1>
+                      <h1 className="text-xl font-semibold ">Sentiments </h1>
 
                       <button
-                        onClick={() => exportComponentAsPNG(npsSummary)}
+                        onClick={() => exportComponentAsPNG(nssSummary)}
                         title="Download"
                         className="text-gray-600"
                       >
@@ -1583,9 +1612,15 @@ const AdminAnalyticsPage = () => {
                           {/* Pie graph */}
                           <div className="absolute  top-[50%]  left-[50%] translate-x-[-50%] translate-y-[-50%] ">
                             <div className="flex flex-col justify-center items-center">
-                              <h1 className="text-[18px] opacity-80">NPS</h1>
+                              <h1 className="text-[18px] opacity-80">
+                                Sentiments
+                              </h1>
                               <p className="opacity-80 text-[24px] font-semibold">
-                                {pageData?.nps?.graphs?.nps_pie_bar?.nps_score}%
+                                {
+                                  pageData?.sentiment?.graphs?.nss_pie_bar
+                                    ?.nss_score
+                                }
+                                %
                               </p>
                             </div>
                           </div>
@@ -1597,7 +1632,7 @@ const AdminAnalyticsPage = () => {
                             <PieChart
                               height={220}
                               width={250}
-                              key={pageData?.nps?.graphs?.nps_pie_bar}
+                              key={pageData?.sentiment?.graphs?.nss_pie_bar}
                             >
                               <Tooltip
                                 cursor={false}
@@ -1605,7 +1640,9 @@ const AdminAnalyticsPage = () => {
                               />
 
                               <Pie
-                                data={pageData?.nps?.graphs?.nps_pie}
+                                data={
+                                  pageData?.sentiment?.graphs?.sentiment_pie
+                                }
                                 dataKey="percentage"
                                 nameKey="label"
                                 cx="50%"
@@ -1623,7 +1660,7 @@ const AdminAnalyticsPage = () => {
                                 minAngle={5}
                                 fill="#1e1e1e1e"
                               >
-                                {pageData?.nps?.graphs?.nps_pie?.map(
+                                {pageData?.sentiment?.graphs?.sentiment_pie?.map(
                                   (entry, index) => (
                                     <Cell key={index} fill={entry?.color} />
                                   )
@@ -1635,16 +1672,16 @@ const AdminAnalyticsPage = () => {
 
                         {/* pie bar */}
                         <div className="flex-[0.7] flex flex-col gap-5 justify-center ">
-                          {/* promoter */}
+                          {/* positive */}
                           <div>
                             {/* head  */}
                             <div className="flex justify-between items-center">
                               <div className="text-gray-400 flex gap-2 ">
-                                <h3>Promoters</h3>
+                                <h3>Positives</h3>
                                 <h4>
                                   {"(" +
-                                    pageData?.nps?.graphs?.nps_pie_bar
-                                      ?.promoters +
+                                    pageData?.sentiment?.graphs?.nss_pie_bar
+                                      ?.positives +
                                     "%)"}
                                 </h4>
                               </div>
@@ -1652,8 +1689,8 @@ const AdminAnalyticsPage = () => {
                               <div className="text-gray-400 flex gap-2 ">
                                 <h3>
                                   {
-                                    pageData?.nps?.graphs?.nps_pie_bar
-                                      ?.total_promoters
+                                    pageData?.sentiment?.graphs?.nss_pie_bar
+                                      ?.total_positives
                                   }
                                 </h3>
 
@@ -1668,23 +1705,23 @@ const AdminAnalyticsPage = () => {
                                 className="bg-[#00AC69] h-[25px] rounded-xl"
                                 style={{
                                   width:
-                                    pageData?.nps?.graphs?.nps_pie_bar
-                                      ?.promoters + "%",
+                                    pageData?.sentiment?.graphs?.nss_pie_bar
+                                      ?.positives + "%",
                                 }}
                               ></div>
                             </div>
                           </div>
 
-                          {/* passive */}
+                          {/* neutral */}
                           <div>
                             {/* head  */}
                             <div className="flex justify-between items-center">
                               <div className="text-gray-400 flex gap-2 ">
-                                <h3>Passives</h3>
+                                <h3>Neutrals</h3>
                                 <h4>
                                   {"(" +
-                                    pageData?.nps?.graphs?.nps_pie_bar
-                                      ?.passive +
+                                    pageData?.sentiment?.graphs?.nss_pie_bar
+                                      ?.neutrals +
                                     "%)"}
                                 </h4>
                               </div>
@@ -1692,8 +1729,8 @@ const AdminAnalyticsPage = () => {
                               <div className="text-gray-400 flex gap-2 ">
                                 <h3>
                                   {
-                                    pageData?.nps?.graphs?.nps_pie_bar
-                                      ?.total_passive
+                                    pageData?.sentiment?.graphs?.nss_pie_bar
+                                      ?.total_neutrals
                                   }
                                 </h3>
 
@@ -1715,16 +1752,16 @@ const AdminAnalyticsPage = () => {
                             </div>
                           </div>
 
-                          {/* detractors */}
+                          {/* negative */}
                           <div>
                             {/* head  */}
                             <div className="flex justify-between items-center">
                               <div className="text-gray-400 flex gap-2 ">
-                                <h3>Detractors</h3>
+                                <h3>Negative</h3>
                                 <h4>
                                   {"(" +
-                                    pageData?.nps?.graphs?.nps_pie_bar
-                                      ?.detractors +
+                                    pageData?.sentiment?.graphs?.nss_pie_bar
+                                      ?.negative +
                                     "%)"}
                                 </h4>
                               </div>
@@ -1732,8 +1769,48 @@ const AdminAnalyticsPage = () => {
                               <div className="text-gray-400 flex gap-2 ">
                                 <h3>
                                   {
-                                    pageData?.nps?.graphs?.nps_pie_bar
-                                      ?.total_detractors
+                                    pageData?.sentiment?.graphs?.nss_pie_bar
+                                      ?.total_negative
+                                  }
+                                </h3>
+
+                                <h4>
+                                  <GroupsRoundedIcon />
+                                </h4>
+                              </div>
+                            </div>
+                            {/* bar */}
+                            <div className="bg-white rounded-xl border">
+                              <div
+                                className="bg-[#EE6123] h-[25px] rounded-xl"
+                                style={{
+                                  width:
+                                    pageData?.sentiment?.graphs?.nss_pie_bar
+                                      ?.negative + "%",
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+
+                          {/* Extreme */}
+                          <div>
+                            {/* head  */}
+                            <div className="flex justify-between items-center">
+                              <div className="text-gray-400 flex gap-2 ">
+                                <h3>Extreme</h3>
+                                <h4>
+                                  {"(" +
+                                    pageData?.sentiment?.graphs?.nss_pie_bar
+                                      ?.extreme +
+                                    "%)"}
+                                </h4>
+                              </div>
+
+                              <div className="text-gray-400 flex gap-2 ">
+                                <h3>
+                                  {
+                                    pageData?.sentiment?.graphs?.nss_pie_bar
+                                      ?.total_extreme
                                   }
                                 </h3>
 
@@ -1748,8 +1825,8 @@ const AdminAnalyticsPage = () => {
                                 className="bg-[#DB2B39] h-[25px] rounded-xl"
                                 style={{
                                   width:
-                                    pageData?.nps?.graphs?.nps_pie_bar
-                                      ?.detractors + "%",
+                                    pageData?.sentiment?.graphs?.nss_pie_bar
+                                      ?.extreme + "%",
                                 }}
                               ></div>
                             </div>
@@ -1759,19 +1836,19 @@ const AdminAnalyticsPage = () => {
                     </div>
                   </div>
 
-                  {/* average nps */}
+                  {/* nss Over Time */}
                   <div
-                    ref={avgNps}
+                    ref={nssOverTime}
                     className="border bg-white rounded-lg p-5  flex-1 w-full"
                   >
                     <div className="flex justify-between items-center gap-5 ">
-                      <h1 className="text-xl font-semibold">Average NPS</h1>
+                      <h1 className="text-xl font-semibold">NSS Over Time</h1>
 
                       {/* select , download and reset */}
                       <div className="flex gap-2 items-center text-gray-700">
                         <button
                           title="Download"
-                          onClick={() => exportComponentAsPNG(avgNps)}
+                          onClick={() => exportComponentAsPNG(nssOverTime)}
                         >
                           <DownloadRoundedIcon />
                         </button>
@@ -1779,7 +1856,8 @@ const AdminAnalyticsPage = () => {
                           <button
                             onClick={() => {
                               setSelectGraphStatus({
-                                avg_nps: !selectGraphStatus?.avg_nps,
+                                nss_over_time:
+                                  !selectGraphStatus?.nss_over_time,
                               });
                             }}
                             className="flex items-center gap-2  border-gray-600 bg-gray-200 text-black px-2 py-1 rounded-lg"
@@ -1790,9 +1868,9 @@ const AdminAnalyticsPage = () => {
                             </span>
                           </button>
                           {/* dropdown */}
-                          {selectGraphStatus?.avg_nps && (
+                          {selectGraphStatus?.nss_over_time && (
                             <div className="absolute top-[110%]  border-gray-600  z-50 bg-gray-100 shadow-2xl rounded-b-lg left-0 right-0">
-                              {pageData?.nps?.legends?.avg_nps?.map(
+                              {pageData?.sentiment?.legends?.nss_over_time?.map(
                                 (data, index) => {
                                   return (
                                     <div
@@ -1800,22 +1878,24 @@ const AdminAnalyticsPage = () => {
                                       className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-200 transition-all cursor-pointer"
                                       onClick={() => {
                                         if (
-                                          selectedGraphAvgNps?.includes(
+                                          selectedGraphNSSOverTime?.includes(
                                             data?.name
                                           )
                                         ) {
-                                          if (selectedGraphAvgNps?.length > 1) {
-                                            setSelectedGraphAvgNps(
-                                              (selectGraphStatus) =>
+                                          if (
+                                            selectedGraphNSSOverTime?.length > 1
+                                          ) {
+                                            setSelectedGraphNSSOverTime(
+                                              (selectedGraphNSSOverTime) =>
                                                 arrayRemove(
-                                                  selectGraphStatus,
+                                                  selectedGraphNSSOverTime,
                                                   data?.name
                                                 )
                                             );
                                           }
                                         } else {
-                                          setSelectedGraphAvgNps(() => [
-                                            ...selectedGraphAvgNps,
+                                          setSelectedGraphNSSOverTime(() => [
+                                            ...selectedGraphNSSOverTime,
                                             data?.name,
                                           ]);
                                         }
@@ -1832,7 +1912,7 @@ const AdminAnalyticsPage = () => {
                                       </div>
 
                                       <div>
-                                        {selectedGraphAvgNps?.includes(
+                                        {selectedGraphNSSOverTime?.includes(
                                           data?.name
                                         ) && (
                                           <CheckCircleRoundedIcon
@@ -1849,11 +1929,12 @@ const AdminAnalyticsPage = () => {
                               <div className="text-sm  flex justify-between border-t">
                                 <button
                                   onClick={() => {
-                                    setSelectedGraphAvgNps([
-                                      "Promoters",
-                                      "Detractors",
-                                      "Passives",
-                                      "Overall",
+                                    setSelectedGraphNSSOverTime([
+                                      "Positive",
+                                      "Neutral",
+                                      "Negative",
+                                      "Extreme",
+                                      "Sentiment",
                                     ]);
                                   }}
                                   className="hover:underline hover:text-blue-500 p-2"
@@ -1862,7 +1943,10 @@ const AdminAnalyticsPage = () => {
                                 </button>
                                 <button
                                   onClick={() => {
-                                    setSelectedGraphAvgNps(["Overall"]);
+                                    setSelectedGraphNSSOverTime([
+                                      "Positive",
+                                      "Neutral",
+                                    ]);
                                   }}
                                   className="hover:underline hover:text-red-500 p-2"
                                 >
@@ -1872,7 +1956,7 @@ const AdminAnalyticsPage = () => {
                             </div>
                           )}
                           {/* overlay */}
-                          {selectGraphStatus?.avg_nps && (
+                          {selectGraphStatus?.nss_over_time && (
                             <div
                               className="bg-black bg-opacity-0 fixed inset-0 z-[49]"
                               onClick={() => {
@@ -1892,112 +1976,36 @@ const AdminAnalyticsPage = () => {
 
                     {/* legend */}
                     <div className="flex items-center gap-5 justify-end my-5">
-                      {pageData?.nps?.legends?.avg_nps?.map((data, index) => {
-                        return (
-                          <div key={index}>
-                            <div className="flex items-center gap-1">
-                              <div
-                                style={{ backgroundColor: data?.color }}
-                                className=" h-[8px] w-[8px] rounded-full"
-                              ></div>
-                              <div className="text-[12px] opacity-80">
-                                {data?.name}
+                      {pageData?.sentiment?.legends?.nss_over_time?.map(
+                        (data, index) => {
+                          return (
+                            <div key={index}>
+                              <div className="flex items-center gap-1">
+                                <div
+                                  style={{ backgroundColor: data?.color }}
+                                  className=" h-[8px] w-[8px] rounded-full"
+                                ></div>
+                                <div className="text-[12px] opacity-80">
+                                  {data?.name}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        }
+                      )}
                     </div>
 
                     {/* Graph */}
                     <div className=" w-full mt-5">
                       <ResponsiveContainer
                         width="98%"
-                        height={220}
+                        height={240}
                         className=""
                       >
                         <ComposedChart
-                          data={pageData?.nps?.graphs?.avg_nps}
+                          data={pageData?.sentiment?.graphs?.nss_over_time}
                           margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
                         >
-                          <defs>
-                            <linearGradient
-                              id="npsGradient"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="#009DFF"
-                                stopOpacity={1}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="#009DFF"
-                                stopOpacity={0.7}
-                              />
-                            </linearGradient>
-
-                            <linearGradient
-                              id="promoterGradient"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="#00AC69"
-                                stopOpacity={1}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="#00AC69"
-                                stopOpacity={0.7}
-                              />
-                            </linearGradient>
-
-                            <linearGradient
-                              id="passiveGradient"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="#4D5552"
-                                stopOpacity={1}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="#4D5552"
-                                stopOpacity={0.7}
-                              />
-                            </linearGradient>
-
-                            <linearGradient
-                              id="detractorGradient"
-                              x1="0"
-                              y1="0"
-                              x2="0"
-                              y2="1"
-                            >
-                              <stop
-                                offset="5%"
-                                stopColor="#DB2B39"
-                                stopOpacity={1}
-                              />
-                              <stop
-                                offset="95%"
-                                stopColor="#DB2B39"
-                                stopOpacity={0.7}
-                              />
-                            </linearGradient>
-                          </defs>
-
                           <CartesianGrid
                             vertical={false}
                             horizontal={false}
@@ -2025,42 +2033,52 @@ const AdminAnalyticsPage = () => {
 
                           <Tooltip cursor={false} content={<CustomTooltip />} />
 
-                          {selectedGraphAvgNps?.includes("Promoters") && (
+                          {selectedGraphNSSOverTime?.includes("Positive") && (
                             <Bar
                               barSize={20}
-                              name="Promoters"
-                              dataKey="promoter"
+                              name="Positive"
+                              dataKey="positive"
                               // fill="#00AC69"
                               fill="url(#promoterGradient)"
                               radius={[20, 20, 0, 0]}
                             />
                           )}
 
-                          {selectedGraphAvgNps?.includes("Passives") && (
+                          {selectedGraphNSSOverTime?.includes("Neutral") && (
                             <Bar
                               barSize={20}
-                              name="Passives"
-                              dataKey="passive"
+                              name="Neutral"
+                              dataKey="neutral"
                               // fill="#4D5552"
                               fill="url(#passiveGradient)"
                               radius={[20, 20, 0, 0]}
                             />
                           )}
-                          {selectedGraphAvgNps?.includes("Detractors") && (
+                          {selectedGraphNSSOverTime?.includes("Negative") && (
                             <Bar
                               barSize={20}
-                              name="Detractors"
-                              dataKey="detractor"
+                              name="Negative"
+                              dataKey="negative"
+                              // fill="#DB2B39"
+                              fill="url(#negativeGradient)"
+                              radius={[20, 20, 0, 0]}
+                            />
+                          )}
+                          {selectedGraphNSSOverTime?.includes("Extreme") && (
+                            <Bar
+                              barSize={20}
+                              name="Extreme"
+                              dataKey="extreme"
                               // fill="#DB2B39"
                               fill="url(#detractorGradient)"
                               radius={[20, 20, 0, 0]}
                             />
                           )}
-                          {selectedGraphAvgNps?.includes("Overall") && (
+                          {selectedGraphNSSOverTime?.includes("Sentiment") && (
                             <Bar
                               barSize={20}
-                              name="Overall"
-                              dataKey="nps"
+                              name="Sentiments"
+                              dataKey="nss"
                               // fill="#0094E0"
                               fill="url(#npsGradient)"
                               radius={[20, 20, 0, 0]}
@@ -2069,265 +2087,6 @@ const AdminAnalyticsPage = () => {
                         </ComposedChart>
                       </ResponsiveContainer>
                     </div>
-                  </div>
-                </div>
-
-                {/* nps over time */}
-                <div
-                  ref={npsOverTime}
-                  className="mt-5 border bg-white rounded-lg p-5 flex-1 min-h-[350px]"
-                >
-                  <div className="flex justify-between items-center gap-2">
-                    <h1 className="text-xl font-semibold "> NPS Over Time</h1>
-
-                    {/* legend after md*/}
-                    <div className="hidden md:flex items-center gap-5 justify-end my-5">
-                      {pageData?.nps?.legends?.nps_over_time?.map(
-                        (data, index) => {
-                          return (
-                            <div key={index}>
-                              <div className="flex items-center gap-1">
-                                <div
-                                  style={{ backgroundColor: data?.color }}
-                                  className=" h-[8px] w-[8px] rounded-full"
-                                ></div>
-                                <div className="text-[12px] opacity-80">
-                                  {data?.name}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        }
-                      )}
-                    </div>
-
-                    {/* select , download and reset */}
-                    <div className="flex gap-2 items-center text-gray-700">
-                      <button
-                        title="Download"
-                        onClick={() => exportComponentAsPNG(npsOverTime)}
-                      >
-                        <DownloadRoundedIcon />
-                      </button>
-                      <div className="relative">
-                        <button
-                          onClick={() => {
-                            setSelectGraphStatus({
-                              nps_over_time: !selectGraphStatus?.nps_over_time,
-                            });
-                          }}
-                          className="flex items-center gap-2  border-gray-600 bg-gray-200 text-black px-2 py-1 rounded-lg"
-                        >
-                          <span>Select graph</span>
-                          <span>
-                            <KeyboardArrowDownRoundedIcon />
-                          </span>
-                        </button>
-                        {/* dropdown */}
-                        {selectGraphStatus?.nps_over_time && (
-                          <div className="absolute top-[110%]  border-gray-600  z-50 bg-gray-100 shadow-2xl rounded-b-lg left-0 right-0">
-                            {pageData?.nps?.legends?.nps_over_time?.map(
-                              (data, index) => {
-                                return (
-                                  <div
-                                    key={index}
-                                    className="flex gap-2 justify-between items-center p-2  text-sm hover:bg-gray-200 transition-all cursor-pointer"
-                                    onClick={() => {
-                                      if (
-                                        selectedGraphNPSOverTime?.includes(
-                                          data?.name
-                                        )
-                                      ) {
-                                        if (
-                                          selectedGraphNPSOverTime?.length > 1
-                                        ) {
-                                          setSelectedGraphNPSOverTime(
-                                            (selectGraphStatus) =>
-                                              arrayRemove(
-                                                selectGraphStatus,
-                                                data?.name
-                                              )
-                                          );
-                                        }
-                                      } else {
-                                        setSelectedGraphNPSOverTime(() => [
-                                          ...selectedGraphNPSOverTime,
-                                          data?.name,
-                                        ]);
-                                      }
-                                    }}
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <div
-                                        style={{
-                                          backgroundColor: data?.color,
-                                        }}
-                                        className="w-[8px] aspect-square  rounded-full"
-                                      ></div>
-                                      <div>{data?.name}</div>
-                                    </div>
-
-                                    <div>
-                                      {selectedGraphNPSOverTime?.includes(
-                                        data?.name
-                                      ) && (
-                                        <CheckCircleRoundedIcon
-                                          fontSize="small"
-                                          className="text-gray-600"
-                                        />
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              }
-                            )}
-
-                            <div className="text-sm  flex justify-between border-t">
-                              <button
-                                onClick={() => {
-                                  setSelectedGraphNPSOverTime([
-                                    "Promoters",
-                                    "Detractors",
-                                    "Passives",
-                                    "NPS",
-                                  ]);
-                                }}
-                                className="hover:underline hover:text-blue-500 p-2"
-                              >
-                                Select all
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedGraphNPSOverTime(["NPS"]);
-                                }}
-                                className="hover:underline hover:text-red-500 p-2"
-                              >
-                                Reset
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                        {/* overlay */}
-                        {selectGraphStatus?.avg_nps && (
-                          <div
-                            className="bg-black bg-opacity-0 fixed inset-0 z-[49]"
-                            onClick={() => {
-                              setSelectGraphStatus({
-                                avg_nps: false,
-                              });
-                            }}
-                          ></div>
-                        )}
-                      </div>
-
-                      {/* <button className="scale-x-[-1]" title="Reset">
-                        <ReplayRoundedIcon />
-                      </button> */}
-                    </div>
-                  </div>
-
-                  {/* legend before md*/}
-                  <div className="flex md:hidden items-center gap-5 justify-end my-5">
-                    {pageData?.nps?.legends?.nps_over_time?.map(
-                      (data, index) => {
-                        return (
-                          <div key={index}>
-                            <div className="flex items-center gap-1">
-                              <div
-                                style={{ backgroundColor: data?.color }}
-                                className=" h-[8px] w-[8px] rounded-full"
-                              ></div>
-                              <div className="text-[12px] opacity-80">
-                                {data?.name}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      }
-                    )}
-                  </div>
-
-                  {/* Graph */}
-                  <div className="relative mt-5">
-                    <ResponsiveContainer width="100%" height={300}>
-                      <AreaChart
-                        key={selectedGraph}
-                        data={pageData?.nps?.graphs?.nps_over_time}
-                        margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
-                      >
-                        <CartesianGrid
-                          vertical={false}
-                          horizontal={false}
-                          opacity={0.5}
-                        />
-                        <XAxis
-                          dataKey="month"
-                          fontSize={12}
-                          axisLine={false}
-                          tickLine={false}
-                          tickCount={6}
-                          angle={0}
-                          textAnchor="middle"
-                        />
-                        <YAxis
-                          axisLine={false}
-                          tickLine={false}
-                          fontSize={12}
-                          tickCount={4}
-                          tickFormatter={(number) => `${number}`}
-                          margin={{ right: 20 }}
-                        />
-                        <Tooltip cursor={false} content={<CustomTooltip />} />
-
-                        {selectedGraphNPSOverTime?.includes("Promoters") && (
-                          <Area
-                            type="monotone"
-                            name="promoter"
-                            dataKey="promoter"
-                            stroke="#00AC69 "
-                            dot={false}
-                            strokeWidth={4}
-                            fill="url(#promoterGradient)"
-                          />
-                        )}
-
-                        {selectedGraphNPSOverTime?.includes("Passives") && (
-                          <Area
-                            type="monotone"
-                            name="passive"
-                            dataKey="passive"
-                            stroke="#4D5552 "
-                            dot={false}
-                            strokeWidth={4}
-                            fill="url(#passiveGradient)"
-                          />
-                        )}
-
-                        {selectedGraphNPSOverTime?.includes("Detractors") && (
-                          <Area
-                            type="monotone"
-                            name="detractor"
-                            dataKey="detractor"
-                            stroke="#DB2B39 "
-                            dot={false}
-                            strokeWidth={4}
-                            fill="url(#detractorGradient)"
-                          />
-                        )}
-
-                        {selectedGraphNPSOverTime?.includes("NPS") && (
-                          <Area
-                            type="monotone"
-                            name="NPS"
-                            dataKey="nps"
-                            stroke="#0094E0 "
-                            dot={false}
-                            strokeWidth={4}
-                            fill="url(#npsGradient)"
-                          />
-                        )}
-                      </AreaChart>
-                    </ResponsiveContainer>
                   </div>
                 </div>
               </div>
