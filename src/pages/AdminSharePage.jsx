@@ -10,7 +10,7 @@ import ForwardToInboxRoundedIcon from "@mui/icons-material/ForwardToInboxRounded
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 
 const AdminSharePage = () => {
-  const header_data = {
+  const pageData = {
     survey_name: "Survey Name",
     links_list: [
       {
@@ -34,7 +34,9 @@ const AdminSharePage = () => {
       },
     ],
 
-    response_data: [{}],
+    share_data: {
+      survey_url: "https://ekonlp/nps_survey/123",
+    },
   };
 
   const [composeStatus, setComposeStatus] = useState(false);
@@ -56,7 +58,7 @@ const AdminSharePage = () => {
         </div>
 
         <div className="flex items-center gap-10 w-full justify-center     ">
-          {header_data?.links_list?.map((data, index) => {
+          {pageData?.links_list?.map((data, index) => {
             return (
               <Link
                 to={data?.link_path}
@@ -93,9 +95,11 @@ const AdminSharePage = () => {
                 <h1 className="text-gray-500">Web URL to share</h1>
 
                 <div className=" border rounded-lg flex gap-2 items-center">
-                  <h1 className="flex-1 p-3">https://ekonlp/nps_survey/123</h1>
+                  <h1 className="flex-1 p-3">
+                    {pageData?.share_data?.survey_url}
+                  </h1>
                   <Link
-                    to="/public/survey/123"
+                    to={pageData?.share_data?.survey_url}
                     className="p-3 border-x-2"
                     title="Open Survey"
                   >
@@ -104,7 +108,7 @@ const AdminSharePage = () => {
 
                   <button
                     className="p-3"
-                    onClick={() => copyText("https://ekonlp/nps_survey/123")}
+                    onClick={() => copyText(pageData?.share_data?.survey_url)}
                     title="copy"
                   >
                     <ContentCopyRoundedIcon />

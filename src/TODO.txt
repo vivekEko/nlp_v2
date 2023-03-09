@@ -2,3 +2,13 @@
 
 1. create edit page, responses page and analytics page
 2. create published survey page
+
+
+##### 9 March 2023 #####
+
+1. Create user database 
+2. Create survey feature.
+3. Create Email database.
+4. Send bulk email cosisting survey link to the selected email ids.
+5. Fill response and submit through survey link.
+6. Record responses in database and display in dashboard's response tab. 
