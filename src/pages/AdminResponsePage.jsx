@@ -158,18 +158,17 @@ const AdminResponsePage = () => {
                 }
               )}
             </div>
+          </div>
+          {/* rows and colums count */}
+          <div className=" left-0 right-0 bg-gray-100 rounded-b-lg bottom-0 flex justify-end items-center gap-5 py-5 px-5">
+            <div className="flex gap-1 items-center ">
+              <h1 className="text-gray-500">Rows : </h1>
+              <h2 className=" text-black font-semibold">24</h2>
+            </div>
 
-            {/* rows and colums count */}
-            <div className="absolute left-0 right-0 bg-gray-100 rounded-b-lg bottom-0 flex justify-end items-center">
-              <div className="flex gap-1 items-center ">
-                <h1 className="text-gray-500">Rows : </h1>
-                <h2 className=" text-black font-semibold">24</h2>
-              </div>
-
-              <div>
-                <h1>Columns</h1>
-                <h2>54</h2>
-              </div>
+            <div className="flex gap-1 items-center ">
+              <h1 className="text-gray-500">Columns : </h1>
+              <h2 className=" text-black font-semibold">30</h2>
             </div>
           </div>
         </div>
