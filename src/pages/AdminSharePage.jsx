@@ -91,6 +91,7 @@ const AdminSharePage = () => {
             </p>
 
             <div className="mt-5 text-gray-600">
+              {/* url */}
               <div className="p-5 mb-5 bg-white rounded-lg ">
                 <h1 className="text-gray-500">Web URL to share</h1>
 
@@ -116,8 +117,9 @@ const AdminSharePage = () => {
                 </div>
               </div>
 
-              <div>
-                <div className="p-10 bg-white rounded-lg  flex flex-col justify-center items-center gap-5">
+              <div className="flex gap-5">
+                {/* compose email */}
+                <div className="p-10 bg-white rounded-lg  flex flex-col justify-center items-center gap-5 w-full">
                   <h1 className="flex justify-center items-center gap-10">
                     <span>
                       <ForwardToInboxRoundedIcon className="scale-150" />
@@ -125,7 +127,7 @@ const AdminSharePage = () => {
 
                     <span className="text-xl ">Compose Email</span>
                   </h1>
-                  <p>
+                  <p className="text-center">
                     Send your survey through email using default or custom
                     templates to multiple audiences in your contacts.
                   </p>
@@ -228,6 +230,12 @@ const AdminSharePage = () => {
                         </div>
                       </div>
                     )}
+                  </div>
+                </div>
+                {/* email ids */}
+                <div className="p-10 bg-white rounded-lg  w-full">
+                  <div>
+                    <h1>Email List</h1>
                   </div>
                 </div>
               </div>

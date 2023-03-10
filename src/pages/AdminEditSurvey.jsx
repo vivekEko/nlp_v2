@@ -1,12 +1,17 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 // icons
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 // images
 import under_construction from "../assets/misc/under_construction.svg";
 import PublicSurveys from "./PublicSurveys";
+import axios from "axios";
+import { VITE_BASE_LINK } from "../BASE_LINK";
 
 const AdminEditSurvey = () => {
+  // local vaiables
+  const location = useParams();
+  const [pageData, setPageData] = useState({});
   const header_data = {
     survey_name: "NPS Survey",
     links_list: [
@@ -31,86 +36,95 @@ const AdminEditSurvey = () => {
       },
     ],
   };
+  // const surveyTemplateData = {
+  //   config: {
+  //     bg_image: "",
+  //     primary_color: "#17286d",
+  //     secondary_color: "",
+  //     total_time: 5000,
+  //   },
 
-  const surveyTemplateData = {
-    config: {
-      bg_image: "",
-      primary_color: "#17286d",
-      secondary_color: "",
-      total_time: 5000,
-    },
+  //   welcome_screen: {
+  //     logo: "",
+  //     heading: "Net Promoter Score Survey",
+  //     sub_text: "",
+  //     start_button_text: "Start Survey",
+  //   },
 
-    welcome_screen: {
-      logo: "",
-      heading: "Net Promoter Score Survey",
-      sub_text: "",
-      start_button_text: "Start Survey",
-    },
+  //   contents: [
+  //     {
+  //       question: "Name",
+  //       type: "small_text",
+  //       answer: "",
+  //       important: true,
+  //     },
+  //     {
+  //       question: "Gender",
+  //       type: "list",
+  //       options: ["Male", "Female", "Other", "Prefer not to say"],
+  //       answer: "",
+  //       important: true,
+  //     },
+  //     {
+  //       question: "Email",
+  //       type: "email",
+  //       answer: "",
+  //       important: true,
+  //     },
+  //     {
+  //       question: "Age",
+  //       type: "number",
+  //       answer: "",
+  //       important: true,
+  //     },
+  //     {
+  //       question: "Phone Number",
+  //       type: "number",
+  //       answer: "",
+  //       important: true,
+  //     },
+  //     {
+  //       question:
+  //         "On a scale of 0 to 10, how likely are you to recommend our company/product/service to a friend or colleague?",
+  //       type: "range",
+  //       start_and_end_word: ["Not likely at all", "Extremely likely"],
+  //       answer: "",
+  //     },
+  //     {
+  //       question:
+  //         " In your opinion, what improvements could the company make that would warrant a higher rating from you? ",
+  //       type: "textarea",
+  //       answer: "",
+  //     },
+  //     {
+  //       question: "How well our service meets your needs?",
+  //       type: "list",
+  //       options: [
+  //         "Extremely well",
+  //         "Very well",
+  //         "Somewhat well",
+  //         "Not so well",
+  //         "Not at all well",
+  //       ],
+  //       answer: "",
+  //     },
+  //     {
+  //       question: "How would you rate our quality of service?",
+  //       type: "star",
+  //       answer: "",
+  //     },
+  //   ],
+  // };
 
-    contents: [
-      {
-        question: "Name",
-        type: "small_text",
-        answer: "",
-        important: true,
-      },
-      {
-        question: "Gender",
-        type: "list",
-        options: ["Male", "Female", "Other", "Prefer not to say"],
-        answer: "",
-        important: true,
-      },
-      {
-        question: "Email",
-        type: "email",
-        answer: "",
-        important: true,
-      },
-      {
-        question: "Age",
-        type: "number",
-        answer: "",
-        important: true,
-      },
-      {
-        question: "Phone Number",
-        type: "number",
-        answer: "",
-        important: true,
-      },
-      {
-        question:
-          "On a scale of 0 to 10, how likely are you to recommend our company/product/service to a friend or colleague?",
-        type: "range",
-        start_and_end_word: ["Not likely at all", "Extremely likely"],
-        answer: "",
-      },
-      {
-        question:
-          " In your opinion, what improvements could the company make that would warrant a higher rating from you? ",
-        type: "textarea",
-        answer: "",
-      },
-      {
-        question: "How well our service meets your needs?",
-        type: "list",
-        options: [
-          "Extremely well",
-          "Very well",
-          "Somewhat well",
-          "Not so well",
-          "Not at all well",
-        ],
-        answer: "",
-      },
-      {
-        question: "How would you rate our quality of service?",
-        type: "star",
-        answer: "",
-      },
-    ],
-  };
+  useEffect(() => {
+    const formData = new FormData();
+    formData?.append("token", localStorage?.getItem("token"));
+    formData?.append("survey_id", location?.survey_id);
+    axios.post(VITE_BASE_LINK + "/userViewSurvey", formData)?.then((res) => {
+      setPageData(res?.data);
+    });
+  }, []);
+
   return (
     <div className="h-[94vh]">
       {/* edit header */}
@@ -127,9 +141,10 @@ const AdminEditSurvey = () => {
         </div>
 
         <div className="flex items-center gap-10 w-full justify-center     ">
-          {header_data?.links_list?.map((data) => {
+          {header_data?.links_list?.map((data, index) => {
             return (
               <Link
+                key={index}
                 to={data?.link_path}
                 className={` ${
                   data?.link_name === "Edit" ? "border-b-[#1e1e1e]" : ""
@@ -144,7 +159,7 @@ const AdminEditSurvey = () => {
         <div className="w-full flex justify-end gap-5 py-1">
           {/* publish btn */}
           <Link
-            to="/public/survey/123"
+            to={"/public/survey/" + location?.survey_id}
             // onClick={() => {
             //   setCreateSurveyOverlay(!createSurveyOverlay);
             // }}
@@ -160,9 +175,9 @@ const AdminEditSurvey = () => {
       <div className="flex w-full">
         {/* question list */}
         <section className="w-full border">
-          {surveyTemplateData?.contents?.map((data, index) => {
+          {pageData?.survey?.map((data, index) => {
             return (
-              <div>
+              <div key={index}>
                 <h1 className="border-b text-=gray-500 cursor-pointer p-3  hover:bg-gray-100 rounded-lg">
                   <span className="mr-2">{index + 1}.</span> {data?.question}
                 </h1>

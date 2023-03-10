@@ -15,6 +15,9 @@ import StarBorderIcon from "@mui/icons-material/StarBorder";
 
 import Rating from "@mui/material/Rating";
 import { styled } from "@mui/material/styles";
+import axios from "axios";
+import { VITE_BASE_LINK } from "../BASE_LINK";
+import { useParams } from "react-router-dom";
 
 const StyledRating = styled(Rating)({
   "& .MuiRating-iconFilled": {
@@ -30,6 +33,7 @@ const PublicSurveys = () => {
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const [pageData, setPageData] = useState();
   const [showAllQuestions, setShowAllQuestions] = useState(false);
+  const location = useParams();
 
   const pageData2 = {
     config: {
@@ -46,7 +50,7 @@ const PublicSurveys = () => {
       start_button_text: "Start Survey",
     },
 
-    contents: [
+    survey: [
       {
         question: "Name",
         type: "small_text",
@@ -112,15 +116,20 @@ const PublicSurveys = () => {
   };
 
   useEffect(() => {
-    setPageData(pageData2);
+    axios
+      .get(VITE_BASE_LINK + "/publicSurvey?survey_id=" + location?.survey_id)
+      ?.then((res) => {
+        console.log("res", res?.data);
+        console.log(pageData2);
+        setPageData(res?.data);
+      });
   }, []);
 
-  useEffect(() => {
-    console.log("activeQuestionIndex:", activeQuestionIndex);
-  }, [activeQuestionIndex]);
+  // useEffect(() => {
+  //   console.log("activeQuestionIndex:", activeQuestionIndex);
+  // }, [activeQuestionIndex]);
 
   const handleUserKeyPress = (e) => {
-    console.log(e?.code);
     if (e.code == "ArrowUp" || e.code == "Escape") {
       // jump to previous question
       if (activeQuestionIndex > 0) {
@@ -128,7 +137,7 @@ const PublicSurveys = () => {
       }
     } else if (e.code == "ArrowDown" || e.code == "Enter") {
       // jump to next question
-      if (activeQuestionIndex < pageData?.contents?.length - 1) {
+      if (activeQuestionIndex < pageData?.survey?.length - 1) {
         setActiveQuestionIndex(activeQuestionIndex + 1);
       }
     }
@@ -143,6 +152,20 @@ const PublicSurveys = () => {
   });
 
   const rangeData = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+  const publicSurveyResponse = () => {
+    axios
+      ?.post(
+        VITE_BASE_LINK +
+          "/publicSurveyResponse?survey_id=" +
+          location?.survey_id,
+        pageData
+      )
+      ?.then((res) => {
+        // setPageData()
+        console.log("publicSurveyResponse=", res?.data);
+      });
+  };
 
   return (
     <div
@@ -193,7 +216,7 @@ const PublicSurveys = () => {
           {/* survey questions */}
           <div className="w-full p-5 max-w-[800px]">
             <div className="">
-              {pageData?.contents?.map((data, index) => {
+              {pageData?.survey?.map((data, index) => {
                 if (activeQuestionIndex === index) {
                   return (
                     <motion.div
@@ -233,7 +256,7 @@ const PublicSurveys = () => {
                             onChange={(e) => {
                               setPageData({
                                 ...pageData,
-                                contents: pageData?.contents?.map(
+                                survey: pageData?.survey?.map(
                                   (c_data, c_index) => {
                                     if (activeQuestionIndex === c_index) {
                                       return {
@@ -263,7 +286,7 @@ const PublicSurveys = () => {
                                   onClick={() => {
                                     setPageData({
                                       ...pageData,
-                                      contents: pageData?.contents?.map(
+                                      survey: pageData?.survey?.map(
                                         (c_data, c_index) => {
                                           if (c_index === activeQuestionIndex) {
                                             return {
@@ -317,7 +340,7 @@ const PublicSurveys = () => {
                             onChange={(e) => {
                               setPageData({
                                 ...pageData,
-                                contents: pageData?.contents?.map(
+                                survey: pageData?.survey?.map(
                                   (c_data, c_index) => {
                                     if (activeQuestionIndex === c_index) {
                                       return {
@@ -348,7 +371,7 @@ const PublicSurveys = () => {
                             onChange={(e) => {
                               setPageData({
                                 ...pageData,
-                                contents: pageData?.contents?.map(
+                                survey: pageData?.survey?.map(
                                   (c_data, c_index) => {
                                     if (activeQuestionIndex === c_index) {
                                       return {
@@ -388,7 +411,7 @@ const PublicSurveys = () => {
                                     onClick={() => {
                                       setPageData({
                                         ...pageData,
-                                        contents: pageData?.contents?.map(
+                                        survey: pageData?.survey?.map(
                                           (c_data, c_index) => {
                                             if (
                                               c_index === activeQuestionIndex
@@ -434,7 +457,7 @@ const PublicSurveys = () => {
                             onChange={(e) => {
                               setPageData({
                                 ...pageData,
-                                contents: pageData?.contents?.map(
+                                survey: pageData?.survey?.map(
                                   (c_data, c_index) => {
                                     if (activeQuestionIndex === c_index) {
                                       return {
@@ -464,7 +487,7 @@ const PublicSurveys = () => {
                                   onClick={() => {
                                     setPageData({
                                       ...pageData,
-                                      contents: pageData?.contents?.map(
+                                      survey: pageData?.survey?.map(
                                         (c_data, c_index) => {
                                           if (c_index === activeQuestionIndex) {
                                             return {
@@ -521,7 +544,7 @@ const PublicSurveys = () => {
                                 onChange={(event, newValue) => {
                                   setPageData({
                                     ...pageData,
-                                    contents: pageData?.contents?.map(
+                                    survey: pageData?.survey?.map(
                                       (c_data, c_index) => {
                                         if (activeQuestionIndex === c_index) {
                                           return {
@@ -538,6 +561,18 @@ const PublicSurveys = () => {
                               />
                             </button>
                           </div>
+                        )}
+
+                        {pageData?.survey?.length - 1 === index && (
+                          <button
+                            style={{
+                              backgroundColor: pageData?.config?.primary_color,
+                            }}
+                            className="px-5 py-2 rounded-lg mt-5  text-white"
+                            onClick={publicSurveyResponse}
+                          >
+                            Submit
+                          </button>
                         )}
                       </div>
                     </motion.div>
@@ -568,7 +603,7 @@ const PublicSurveys = () => {
               {showAllQuestions && (
                 <div className="absolute bottom-[110%] right-0 bg-white  z-[55] rounded-lg min-w-[300px] text-black">
                   <h1 className="p-3 font-semibold">Questions</h1>
-                  {pageData?.contents?.map((data, index) => {
+                  {pageData?.survey?.map((data, index) => {
                     return (
                       <button
                         key={index}
@@ -621,12 +656,12 @@ const PublicSurveys = () => {
                 className="group"
                 title="Next"
                 onClick={() => {
-                  if (activeQuestionIndex < pageData?.contents?.length - 1) {
+                  if (activeQuestionIndex < pageData?.survey?.length - 1) {
                     setActiveQuestionIndex(activeQuestionIndex + 1);
                   }
                 }}
               >
-                {activeQuestionIndex === pageData?.contents?.length - 1 ? (
+                {activeQuestionIndex === pageData?.survey?.length - 1 ? (
                   <KeyboardArrowDownRoundedIcon
                     fontSize="large"
                     className=" text-gray-500 cursor-not-allowed"

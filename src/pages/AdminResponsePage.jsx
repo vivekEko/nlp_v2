@@ -32,6 +32,10 @@ const AdminResponsePage = () => {
 
   const pageData = {
     responseData: {
+      config: {
+        rows: 24,
+        column: 30,
+      },
       questions: [
         "Name",
         "Gender",
@@ -114,8 +118,9 @@ const AdminResponsePage = () => {
       </header>
 
       {/* main body */}
-      <div>
-        <div className="overflow-x-scroll w-[80%] mx-auto border rounded-lg mt-10">
+      <div className="w-[80%] mx-auto mb-10">
+        {/* all responses */}
+        <div className="overflow-x-scroll  border rounded-lg mt-10">
           {/* headings / question list */}
           <div className={` flex   `}>
             {pageData?.responseData?.questions?.map(
@@ -134,7 +139,7 @@ const AdminResponsePage = () => {
             )}
           </div>
 
-          <div className="min-h-[80vh] relative">
+          <div className="min-h-[75vh] relative">
             {/* all answers  */}
             <div>
               {pageData?.responseData?.answers?.map(
@@ -159,17 +164,17 @@ const AdminResponsePage = () => {
               )}
             </div>
           </div>
-          {/* rows and colums count */}
-          <div className=" left-0 right-0 bg-gray-100 rounded-b-lg bottom-0 flex justify-end items-center gap-5 py-5 px-5">
-            <div className="flex gap-1 items-center ">
-              <h1 className="text-gray-500">Rows : </h1>
-              <h2 className=" text-black font-semibold">24</h2>
-            </div>
+        </div>
+        {/* rows and colums count */}
+        <div className="bg-gray-100 rounded-b-lg  flex justify-end items-center gap-5 py-5 px-5">
+          <div className="flex gap-1 items-center ">
+            <h1 className="text-gray-500">Rows : </h1>
+            <h2 className=" text-black font-semibold">24</h2>
+          </div>
 
-            <div className="flex gap-1 items-center ">
-              <h1 className="text-gray-500">Columns : </h1>
-              <h2 className=" text-black font-semibold">30</h2>
-            </div>
+          <div className="flex gap-1 items-center ">
+            <h1 className="text-gray-500">Columns : </h1>
+            <h2 className=" text-black font-semibold">30</h2>
           </div>
         </div>
       </div>

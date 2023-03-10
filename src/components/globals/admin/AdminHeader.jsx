@@ -6,10 +6,13 @@ import PostAddRoundedIcon from "@mui/icons-material/PostAddRounded";
 import WebRoundedIcon from "@mui/icons-material/WebRounded";
 import PsychologyRoundedIcon from "@mui/icons-material/PsychologyRounded";
 import BrowserUpdatedRoundedIcon from "@mui/icons-material/BrowserUpdatedRounded";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { VITE_BASE_LINK } from "../../../BASE_LINK";
 
 const AdminHeader = () => {
   // local variables
+  const navigate = useNavigate();
   const [accountDropdownStatus, setAccountDropdownStatus] = useState(false);
   const [createSurveyOverlay, setCreateSurveyOverlay] = useState(false);
   const account_dropdown = {
@@ -54,6 +57,18 @@ const AdminHeader = () => {
         "Use this function to import a BlockSurvey-exported form or survey. Only the JSON format is supported.",
     },
   ];
+
+  const create_new_survey = () => {
+    const formData = new FormData();
+    formData.append("token", localStorage?.getItem("token"));
+    axios
+      ?.post(VITE_BASE_LINK + "/createNewSurveyFromTemplate", formData)
+      ?.then((res) => {
+        if (res?.data?.status) {
+          navigate("/admin/edit/" + res?.data?.survey_id);
+        }
+      });
+  };
 
   return (
     <header className="flex justify-end items-center p-5 gap-5 border-b bg-gray-50">
@@ -130,18 +145,20 @@ const AdminHeader = () => {
           <div className="grid grid-cols-2 gap-5">
             {create_survey?.map((data, index) => {
               return (
-                <Link key={index} to="/admin/edit/123">
-                  <div className="hover:shadow-xl transition-all duration-300 cursor-pointer p-5 border rounded-lg">
-                    <div className="bg-gray-100 rounded-lg aspect-video flex justify-center items-center text-gray-600">
-                      {data?.icon}
-                    </div>
-
-                    <h1 className="text-lg text-gray-800 my-2">
-                      {data?.heading}
-                    </h1>
-                    <p className="text-sm text-gray-500">{data?.paragraph}</p>
+                <button
+                  key={index}
+                  onClick={create_new_survey}
+                  className="hover:shadow-xl transition-all duration-300 cursor-pointer p-5 border rounded-lg"
+                >
+                  <div className="bg-gray-100 rounded-lg aspect-video flex justify-center items-center text-gray-600">
+                    {data?.icon}
                   </div>
-                </Link>
+
+                  <h1 className="text-lg text-gray-800 my-2">
+                    {data?.heading}
+                  </h1>
+                  <p className="text-sm text-gray-500">{data?.paragraph}</p>
+                </button>
               );
             })}
           </div>

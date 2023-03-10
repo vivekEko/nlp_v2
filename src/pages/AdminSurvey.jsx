@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 // components
 import AdminSidebar from "../components/globals/admin/AdminSidebar";
@@ -10,25 +10,29 @@ import LaunchRoundedIcon from "@mui/icons-material/LaunchRounded";
 import ContentCopyRoundedIcon from "@mui/icons-material/ContentCopyRounded";
 import DescriptionRoundedIcon from "@mui/icons-material/DescriptionRounded";
 import ModeEditOutlineOutlinedIcon from "@mui/icons-material/ModeEditOutlineOutlined";
+import { VITE_BASE_LINK } from "../BASE_LINK";
+import axios from "axios";
 
 const AdminSurvey = () => {
+  // local variables
   const [searchText, setSearchText] = useState("");
+  const [pageData, setPageData] = useState({});
   const survey_list_data = {
-    headings: ["Title", "Status", "Responses", "Last modified", "Actions"],
+    headings: ["Title", "Status", "Responses", "Created", "Actions"],
     contents: [
       {
         id: 1,
         title: "Net Promoter Score survey 1",
         status: "LIVE",
         responses: 5,
-        last_modified: "11-Feb-2023",
+        created: "11-Feb-2023",
       },
       {
         id: 2,
         title: "Net Promoter Score survey 2",
         status: "CLOSED",
         responses: 8,
-        last_modified: "12-Feb-2023",
+        created: "12-Feb-2023",
       },
 
       {
@@ -36,14 +40,14 @@ const AdminSurvey = () => {
         title: "Net Promoter Score survey 3",
         status: "LIVE",
         responses: 10,
-        last_modified: "13-Feb-2023",
+        created: "13-Feb-2023",
       },
       {
         id: 4,
         title: "Net Promoter Score survey 4",
         status: "LIVE",
         responses: 45,
-        last_modified: "14-Feb-2023",
+        created: "14-Feb-2023",
       },
 
       {
@@ -51,17 +55,29 @@ const AdminSurvey = () => {
         title: "Net Promoter Score survey 5",
         status: "LIVE",
         responses: 12,
-        last_modified: "15-Feb-2023",
+        created: "15-Feb-2023",
       },
       {
         id: 6,
         title: "Net Promoter Score survey 6",
         status: "CLOSED",
         responses: 8,
-        last_modified: "16-Feb-2023",
+        created: "16-Feb-2023",
       },
     ],
   };
+
+  // lifecycle calls
+  useEffect(() => {
+    const formData = new FormData();
+    formData?.append("token", localStorage?.getItem("token"));
+    axios
+      ?.post(VITE_BASE_LINK + "/userListViewSurvey", formData)
+      ?.then((res) => {
+        setPageData(res?.data);
+      });
+  }, []);
+
   return (
     <div className="bg-gray-50  min-h-screen">
       <AdminSidebar />
@@ -70,12 +86,12 @@ const AdminSurvey = () => {
         <AdminHeader />
 
         <div className=" h-full">
-          <div className="w-[90%] mx-auto py-5 ">
+          <div className="w-[90%] mx-auto py-5">
             {/* search  and filters*/}
             <div className="">
               <label
                 htmlFor="search_survey"
-                onClick={(e) => {
+                onClick={() => {
                   search_survey?.current?.focus();
                 }}
                 className="text-lg px-5  flex items-center gap-2 w-full max-w-[400px] border rounded-xl"
@@ -91,7 +107,7 @@ const AdminSurvey = () => {
                   onChange={(e) => {
                     setSearchText(e?.target?.value);
                   }}
-                  className="p-3 w-full outline-none "
+                  className="p-3 w-full outline-none"
                 />
               </label>
             </div>
@@ -100,7 +116,7 @@ const AdminSurvey = () => {
 
             <div className="px-5">
               <div className="grid grid-cols-6 mt-5 pb-5">
-                {survey_list_data?.headings?.map((data, index) => {
+                {pageData?.headings?.map((data, index) => {
                   return (
                     <div
                       className={` ${
@@ -115,7 +131,7 @@ const AdminSurvey = () => {
               </div>
 
               <div>
-                {survey_list_data?.contents
+                {pageData?.content
                   ?.filter((filterValue) => {
                     if (searchText === "") {
                       return filterValue;
@@ -153,27 +169,29 @@ const AdminSurvey = () => {
                           {data?.status}
                         </div>
                         <div className="w-full text-gray-400 py-3">
-                          {data?.responses}
+                          {data?.responses
+                            ? data?.responses
+                            : "No responses yet"}
                         </div>
                         <div className="w-full text-gray-400 py-3">
-                          {data?.last_modified}
+                          {data?.created}
                         </div>
                         <div className="w-full flex items-center gap-5 text-gray-500">
                           {/* edit */}
-                          <div class="group  relative inline-block  border-gray-400  text-center">
+                          <div className="group  relative inline-block  border-gray-400  text-center">
                             <button className="">
                               <EditRoundedIcon />
                             </button>
-                            <div class="opacity-0  bg-[#1e1e1e] text-white text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-1/2  px-3 pointer-events-none">
+                            <div className="opacity-0  bg-[#1e1e1e] text-white text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-1/2  px-3 pointer-events-none">
                               <span>Edit</span>
                               <svg
-                                class="absolute text-[#1e1e1e] h-2 w-full left-0 top-full"
+                                className="absolute text-[#1e1e1e] h-2 w-full left-0 top-full"
                                 x="0px"
                                 y="0px"
                                 viewBox="0 0 255 255"
                               >
                                 <polygon
-                                  class="fill-current"
+                                  className="fill-current"
                                   points="0,0 127.5,127.5 255,0"
                                 />
                               </svg>
@@ -181,20 +199,20 @@ const AdminSurvey = () => {
                           </div>
 
                           {/* view */}
-                          <div class="group  relative inline-block  border-gray-400  text-center">
+                          <div className="group  relative inline-block  border-gray-400  text-center">
                             <button className="">
                               <LaunchRoundedIcon />
                             </button>
-                            <div class="opacity-0  bg-[#1e1e1e] text-white text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-1/2  px-3 pointer-events-none">
+                            <div className="opacity-0  bg-[#1e1e1e] text-white text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-1/2  px-3 pointer-events-none">
                               <span>View</span>
                               <svg
-                                class="absolute text-[#1e1e1e] h-2 w-full left-0 top-full"
+                                className="absolute text-[#1e1e1e] h-2 w-full left-0 top-full"
                                 x="0px"
                                 y="0px"
                                 viewBox="0 0 255 255"
                               >
                                 <polygon
-                                  class="fill-current"
+                                  className="fill-current"
                                   points="0,0 127.5,127.5 255,0"
                                 />
                               </svg>
@@ -202,20 +220,20 @@ const AdminSurvey = () => {
                           </div>
 
                           {/* copy */}
-                          <div class="group  relative inline-block  border-gray-400  text-center">
+                          <div className="group  relative inline-block  border-gray-400  text-center">
                             <button className="">
                               <ContentCopyRoundedIcon />
                             </button>
-                            <div class="opacity-0  bg-[#1e1e1e] text-white text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-1/2  px-3 pointer-events-none ">
+                            <div className="opacity-0  bg-[#1e1e1e] text-white text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-1/2  px-3 pointer-events-none ">
                               <span>Copy link</span>
                               <svg
-                                class="absolute text-[#1e1e1e] h-2 w-full left-0 top-full"
+                                className="absolute text-[#1e1e1e] h-2 w-full left-0 top-full"
                                 x="0px"
                                 y="0px"
                                 viewBox="0 0 255 255"
                               >
                                 <polygon
-                                  class="fill-current"
+                                  className="fill-current"
                                   points="0,0 127.5,127.5 255,0"
                                 />
                               </svg>
@@ -223,20 +241,20 @@ const AdminSurvey = () => {
                           </div>
 
                           {/* responses */}
-                          <div class="group  relative inline-block  border-gray-400  text-center ">
+                          <div className="group  relative inline-block  border-gray-400  text-center ">
                             <button className="">
                               <DescriptionRoundedIcon />
                             </button>
-                            <div class="opacity-0  bg-[#1e1e1e] text-white text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-0  px-3 pointer-events-none ">
+                            <div className="opacity-0 bg-[#1e1e1e] text-white text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-0  px-3 pointer-events-none ">
                               <span>Response</span>
                               <svg
-                                class="absolute text-[#1e1e1e] h-2 w-full left-0 top-full"
+                                className="absolute text-[#1e1e1e] h-2 w-full left-0 top-full"
                                 x="0px"
                                 y="0px"
                                 viewBox="0 0 255 255"
                               >
                                 <polygon
-                                  class="fill-current"
+                                  className="fill-current"
                                   points="0,0 127.5,127.5 255,0"
                                 />
                               </svg>

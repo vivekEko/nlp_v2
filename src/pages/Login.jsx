@@ -14,6 +14,8 @@ import google_logo from "../assets/login/google-logo.png";
 import { useNavigate } from "react-router-dom";
 // loader
 import { Oval } from "react-loader-spinner";
+import axios from "axios";
+import { VITE_BASE_LINK } from "../BASE_LINK";
 
 const Login = () => {
   // local variables
@@ -23,14 +25,27 @@ const Login = () => {
   const [passwordVisibility, setPasswordVisibility] = useState(false);
   const [loaderStatus, setLoaderStatus] = useState(false);
 
+  const connectToLocalBackend = (param) => {
+    axios?.({
+      method: "post",
+      url: VITE_BASE_LINK + `/auth/createOrLogin`,
+      data: param,
+    }).then((res) => {
+      console.log("Response from local backedn", res);
+      if (res?.data?.status) {
+        localStorage?.setItem("token", res?.data?.token);
+        navigate("/admin/surveys");
+        setLoaderStatus(false);
+      }
+    });
+  };
+
   const signInWithGoogle = async () => {
     setLoaderStatus(true);
     try {
       await signInWithPopup(auth, provider)?.then((res) => {
         if (res) {
-          navigate("/admin/surveys");
-          console.log(res);
-          setLoaderStatus(false);
+          connectToLocalBackend(res);
         }
       });
     } catch (error) {
