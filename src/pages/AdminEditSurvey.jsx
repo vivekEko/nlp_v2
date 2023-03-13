@@ -17,22 +17,22 @@ const AdminEditSurvey = () => {
     links_list: [
       {
         link_name: "Edit",
-        link_path: "/admin/edit/123",
+        link_path: "/admin/edit/",
       },
 
       {
         link_name: "Share",
-        link_path: "/admin/share/123",
+        link_path: "/admin/share/",
       },
 
       {
         link_name: "Responses",
-        link_path: "/admin/response/123",
+        link_path: "/admin/response/",
       },
 
       {
         link_name: "Analytics",
-        link_path: "/admin/analytic/123",
+        link_path: "/admin/analytic/",
       },
     ],
   };
@@ -145,7 +145,7 @@ const AdminEditSurvey = () => {
             return (
               <Link
                 key={index}
-                to={data?.link_path}
+                to={data?.link_path + location?.survey_id}
                 className={` ${
                   data?.link_name === "Edit" ? "border-b-[#1e1e1e]" : ""
                 } flex-1 border-b-2  h-[50px]  flex justify-center items-center font-semibold translate-y-[2px]  `}
