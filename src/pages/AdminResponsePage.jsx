@@ -92,7 +92,6 @@ const AdminResponsePage = () => {
     formData?.append("token", localStorage?.getItem("token"));
     formData?.append("survey_id", location?.survey_id);
     axios?.post(VITE_BASE_LINK + "/viewResponseData", formData)?.then((res) => {
-      console.log(res?.data);
       setPageData(res?.data);
     });
   }, []);
@@ -171,9 +170,7 @@ const AdminResponsePage = () => {
                               {all_answers_data?.answer ? (
                                 all_answers_data?.answer
                               ) : (
-                                <p className="text-gray-400 text-sm">
-                                  No response
-                                </p>
+                                <p className="text-gray-400 ">No response</p>
                               )}
                             </h1>
                           </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import ArrowBackIosNewRoundedIcon from "@mui/icons-material/ArrowBackIosNewRounded";
 import LockRoundedIcon from "@mui/icons-material/LockRounded";
@@ -35,6 +35,7 @@ import html2canvas from "html2canvas";
 
 const AdminAnalyticsPage = () => {
   // local variables
+  const location = useParams();
 
   const [selectGraphStatus, setSelectGraphStatus] = useState({
     avg_nps: false,
@@ -46,22 +47,22 @@ const AdminAnalyticsPage = () => {
     links_list: [
       {
         link_name: "Edit",
-        link_path: "/admin/edit/123",
+        link_path: "/admin/edit/",
       },
 
       {
         link_name: "Share",
-        link_path: "/admin/share/123",
+        link_path: "/admin/share/",
       },
 
       {
         link_name: "Responses",
-        link_path: "/admin/response/123",
+        link_path: "/admin/response/",
       },
 
       {
         link_name: "Analytics",
-        link_path: "/admin/analytic/123",
+        link_path: "/admin/analytic/",
       },
     ],
   };
@@ -670,7 +671,7 @@ const AdminAnalyticsPage = () => {
             return (
               <Link
                 key={index}
-                to={data?.link_path}
+                to={data?.link_path + location?.survey_id}
                 className={` ${
                   data?.link_name === "Analytics" ? "border-b-[#1e1e1e]" : ""
                 } flex-1 border-b-2  h-[50px]  flex justify-center items-center font-semibold translate-y-[2px]  `}

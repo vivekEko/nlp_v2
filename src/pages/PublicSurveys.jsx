@@ -29,7 +29,7 @@ const StyledRating = styled(Rating)({
 });
 
 const PublicSurveys = () => {
-  const [surveyStartStatus, setSurveyStartStatus] = useState(false);
+  const [surveyStartStatus, setSurveyStartStatus] = useState("welcome_screen");
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const [pageData, setPageData] = useState();
   const [showAllQuestions, setShowAllQuestions] = useState(false);
@@ -113,6 +113,10 @@ const PublicSurveys = () => {
         answer: "",
       },
     ],
+
+    thank_you_screen: {
+      message: "Thank you for your time!",
+    },
   };
 
   useEffect(() => {
@@ -120,7 +124,7 @@ const PublicSurveys = () => {
       .get(VITE_BASE_LINK + "/publicSurvey?survey_id=" + location?.survey_id)
       ?.then((res) => {
         console.log("res", res?.data);
-        console.log(pageData2);
+        // console.log(pageData2);
         setPageData(res?.data);
       });
   }, []);
@@ -164,6 +168,7 @@ const PublicSurveys = () => {
       ?.then((res) => {
         // setPageData()
         console.log("publicSurveyResponse=", res?.data);
+        setSurveyStartStatus("thanks");
       });
   };
 
@@ -173,10 +178,10 @@ const PublicSurveys = () => {
         backgroundImage: "url(../template_1_bg.svg)",
       }}
       className={` ${
-        surveyStartStatus ? "justify-between flex-col" : ""
-      }  h-screen bg-fixed bg-cover bg-center bg-no-repeat  w-full flex justify-center items-center gap-5 `}
+        surveyStartStatus === "survey" ? " justify-between flex-col" : ""
+      }   h-screen bg-fixed bg-cover bg-center bg-no-repeat  w-full flex justify-center items-center gap-5 `}
     >
-      {!surveyStartStatus && (
+      {surveyStartStatus === "welcome_screen" && (
         <div className="">
           <img
             src={logo}
@@ -189,7 +194,7 @@ const PublicSurveys = () => {
             {pageData?.welcome_screen?.heading}
           </h1>
           <button
-            onClick={() => setSurveyStartStatus(true)}
+            onClick={() => setSurveyStartStatus("survey")}
             style={{ backgroundColor: pageData?.config?.primary_color }}
             className={`px-10 py-3 rounded-lg mx-auto block   text-lg font-medium tracking-widest text-white transition-all active:scale-95`}
           >
@@ -198,7 +203,7 @@ const PublicSurveys = () => {
         </div>
       )}
 
-      {surveyStartStatus && (
+      {surveyStartStatus === "survey" && (
         <>
           {/* survey header */}
           <div className="flex justify-between items-center gap-5 p-5 w-full">
@@ -676,6 +681,23 @@ const PublicSurveys = () => {
             </div>
           </div>
         </>
+      )}
+
+      {surveyStartStatus === "thanks" && (
+        <div className="">
+          <h1
+            className={`text-[${pageData?.config?.primary_color}] text-3xl font-semibold my-10`}
+          >
+            {pageData?.thank_you_screen?.message}
+          </h1>
+
+          <h3 className="text-sm text-gray-500 mb-5 text-center">Powered by</h3>
+          <img
+            src={logo}
+            alt="company logo"
+            className="mx-auto w-full max-w-[60px]"
+          />
+        </div>
       )}
     </div>
   );
