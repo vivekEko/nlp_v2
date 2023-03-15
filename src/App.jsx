@@ -15,8 +15,8 @@ function App() {
   return (
     <div className="cursor-default">
       <Routes>
-        <Route path="*" element={<Navigate to={"/"} replace={true} />} />
-        <Route element={<LandingPage />} path={"/"} />
+        <Route path="*" element={<Navigate to={"/login"} replace={true} />} />
+        {/* <Route element={<LandingPage />} path={"/"} /> */}
         <Route element={<Login />} path={"/login"} />
         <Route element={<AdminSurvey />} path={"/admin/surveys"} />
         <Route element={<AdminEditSurvey />} path={"/admin/edit/:survey_id"} />

@@ -113,7 +113,6 @@ const AdminSurvey = () => {
             </div>
 
             {/* survey array data */}
-
             <div className="px-5">
               <div className="grid grid-cols-6 mt-5 pb-5">
                 {pageData?.headings?.map((data, index) => {
