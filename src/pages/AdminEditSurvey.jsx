@@ -140,7 +140,7 @@ const AdminEditSurvey = () => {
           />
         </div>
 
-        <div className="flex items-center gap-10 w-full justify-center     ">
+        <div className="flex items-center gap-10 w-full justify-center">
           {header_data?.links_list?.map((data, index) => {
             return (
               <Link
@@ -163,7 +163,7 @@ const AdminEditSurvey = () => {
             // onClick={() => {
             //   setCreateSurveyOverlay(!createSurveyOverlay);
             // }}
-            className=" px-5 py-2 bg-[#1e1e1e] rounded-lg text-white flex items-center gap-2 active:scale-95 transition-all hover:bg-white hover:text-[#1e1e1e] duration-300 border-2 border-[#1e1e1e] group"
+            className="px-5 py-2 bg-[#1e1e1e] rounded-lg text-white flex items-center gap-2 active:scale-95 transition-all hover:bg-white hover:text-[#1e1e1e] duration-300 border-2 border-[#1e1e1e] group"
           >
             <span className="block font-semibold">Publish</span>
           </Link>
@@ -171,7 +171,6 @@ const AdminEditSurvey = () => {
       </header>
 
       {/* main body */}
-
       <div className="flex w-full">
         {/* question list */}
         <section className="w-full border">
@@ -189,12 +188,12 @@ const AdminEditSurvey = () => {
           <div className=" h-full flex justify-center items-center">
             <img
               src={under_construction}
-              alt="under construction"
+              alt="Under Construction"
               className="w-[50%]"
             />
           </div>
         </section>
-        <section className="w-full  border bg-[url(/template_1_bg.svg)]">
+        <section className="w-full border bg-[url(/template_1_bg.svg)]">
           <PublicSurveys />
         </section>
       </div>

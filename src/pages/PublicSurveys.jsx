@@ -149,7 +149,6 @@ const PublicSurveys = () => {
 
   useEffect(() => {
     window.addEventListener("keydown", handleUserKeyPress);
-
     return () => {
       window.removeEventListener("keydown", handleUserKeyPress);
     };
@@ -178,8 +177,8 @@ const PublicSurveys = () => {
         backgroundImage: "url(../template_1_bg.svg)",
       }}
       className={` ${
-        surveyStartStatus === "survey" ? " justify-between flex-col" : ""
-      }   h-screen bg-fixed bg-cover bg-center bg-no-repeat  w-full flex justify-center items-center gap-5 `}
+        surveyStartStatus === "survey" ? "justify-between flex-col" : ""
+      } h-screen bg-fixed bg-cover bg-center bg-no-repeat w-full flex justify-center items-center gap-5 `}
     >
       {surveyStartStatus === "welcome_screen" && (
         <div className="">
